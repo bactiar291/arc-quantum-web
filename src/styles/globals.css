@@ -1,0 +1,214 @@
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:wght@400;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg-primary: #0a0a0a;
+  --bg-panel: #111111;
+  --border: #ffffff;
+  --accent-yellow: #ffe500;
+  --accent-cyan: #00ffe5;
+  --accent-red: #ff2d55;
+  --text-primary: #ffffff;
+  --text-mono: #00ffe5;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--bg-primary);
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: 'Space Mono', 'Courier New', monospace;
+}
+
+button,
+input,
+select {
+  letter-spacing: 0;
+}
+
+button,
+select {
+  cursor: pointer;
+}
+
+::selection {
+  background: var(--accent-yellow);
+  color: #000;
+}
+
+.grid-noise {
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+  background-size: 32px 32px;
+  mask-image: linear-gradient(to bottom, #000 0%, transparent 90%);
+}
+
+.panel {
+  isolation: isolate;
+}
+
+.panel::before {
+  content: '';
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 229, 0, 0.08),
+    rgba(0, 255, 229, 0.04) 42%,
+    transparent 42%
+  );
+}
+
+.brutal-button {
+  border: 2px solid #000;
+  transition:
+    transform 120ms ease,
+    box-shadow 120ms ease,
+    filter 120ms ease;
+}
+
+.brutal-button:hover:not(:disabled) {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0 #000;
+  filter: saturate(1.15);
+}
+
+.brutal-button:active:not(:disabled) {
+  transform: translate(4px, 4px);
+  box-shadow: 0 0 0 #000;
+}
+
+.input-quantum {
+  min-height: 48px;
+  border: 2px solid var(--accent-cyan);
+  background: #000;
+  color: var(--accent-cyan);
+  outline: none;
+  transition:
+    border-color 120ms ease,
+    box-shadow 120ms ease;
+}
+
+.input-quantum:focus {
+  border-color: var(--accent-yellow);
+  box-shadow: 0 0 0 2px rgba(255, 229, 0, 0.45);
+}
+
+.input-quantum:disabled {
+  color: rgba(255, 255, 255, 0.35);
+  border-color: rgba(255, 255, 255, 0.35);
+}
+
+.scanline {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+}
+
+.scanline::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -30%;
+  height: 42%;
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    rgba(0, 255, 229, 0.18),
+    transparent
+  );
+  animation: scan 2.4s linear infinite;
+}
+
+.quantum-stage {
+  position: absolute;
+  inset: 70px 18px 70px;
+  display: grid;
+  place-items: center;
+  perspective: 900px;
+}
+
+.quantum-cube {
+  position: relative;
+  width: min(46vw, 210px);
+  aspect-ratio: 1;
+  animation: float3d 4s ease-in-out infinite;
+  transform-style: preserve-3d;
+}
+
+.quantum-cube span {
+  position: absolute;
+  inset: 0;
+  border: 4px solid #fff;
+  background: rgba(0, 255, 229, 0.16);
+  box-shadow: 0 0 24px rgba(0, 255, 229, 0.45) inset;
+}
+
+.quantum-cube span:nth-child(1) {
+  transform: translateZ(56px);
+}
+
+.quantum-cube span:nth-child(2) {
+  transform: rotateY(90deg) translateZ(56px);
+  background: rgba(255, 229, 0, 0.18);
+}
+
+.quantum-cube span:nth-child(3) {
+  transform: rotateX(90deg) translateZ(56px);
+  background: rgba(255, 45, 85, 0.16);
+}
+
+.orbit {
+  position: absolute;
+  width: min(62vw, 300px);
+  aspect-ratio: 1;
+  border: 2px solid rgba(255, 255, 255, 0.85);
+  border-radius: 50%;
+}
+
+.orbit-a {
+  transform: rotateX(72deg) rotateZ(20deg);
+  border-color: #ffe500;
+}
+
+.orbit-b {
+  transform: rotateX(58deg) rotateY(56deg);
+  border-color: #00ffe5;
+}
+
+.orbit-c {
+  transform: rotateX(112deg) rotateY(20deg);
+  border-color: #ff2d55;
+}
+
+@media (max-width: 640px) {
+  .quantum-stage {
+    inset: 96px 8px 72px;
+  }
+
+  .quantum-cube {
+    width: 150px;
+  }
+}

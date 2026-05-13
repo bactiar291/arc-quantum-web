@@ -1,0 +1,14 @@
+node_modules
+dist
+.env
+.env.local
+.vercel
+coverage
+*.log
+cache
+out
+broadcast
+/contracts/lib
+contracts/build
+*.tsbuildinfo
+*.config.d.ts
