@@ -2,8 +2,8 @@ import { Boxes, ShieldCheck } from 'lucide-react'
 import { useState } from 'react'
 import type { Hex } from 'viem'
 
-import { quantumRouterAddress } from '../../lib/contracts'
 import { EURC_TOKEN, USDC_TOKEN } from '../../lib/tokens'
+import { useAmmConfig } from '../../hooks/useAmm'
 import { useLiquidity } from '../../hooks/useLiquidity'
 import { useSession } from '../../hooks/useSession'
 import { Button } from '../ui/Button'
@@ -18,11 +18,12 @@ export function LiquidityPanel() {
   const [hash, setHash] = useState<Hex>()
   const [error, setError] = useState('')
   const { isSessionActive } = useSession()
+  const { routerAddress } = useAmmConfig()
   const { approveRouter, addLiquidity } = useLiquidity()
 
   const tokenA = USDC_TOKEN
   const tokenB = EURC_TOKEN
-  const disabled = !isSessionActive || !quantumRouterAddress || busy
+  const disabled = !isSessionActive || !routerAddress || busy
   const liquidityDisabled = disabled || !amountA || !amountB
 
   const runApprove = async (token: typeof USDC_TOKEN) => {

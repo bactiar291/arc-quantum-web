@@ -3,9 +3,9 @@ import { encodeFunctionData, parseUnits, type Address } from 'viem'
 import {
   erc20Abi,
   maxUint256,
-  quantumRouterAbi,
-  quantumRouterAddress
+  quantumRouterAbi
 } from '../lib/contracts'
+import { useAmmConfig } from './useAmm'
 import { useSession } from './useSession'
 import { useTrackedTx } from './useTrackedTx'
 
@@ -21,14 +21,15 @@ interface LiquidityParams {
 
 export function useLiquidity() {
   const { smartAccountAddress, sendSessionTransaction } = useSession()
+  const { routerAddress } = useAmmConfig()
   const track = useTrackedTx()
 
   const approveRouter = async (token: Address) => {
-    if (!quantumRouterAddress) throw new Error('Router address missing.')
+    if (!routerAddress) throw new Error('Router address missing. Run Setup AMM first.')
     const data = encodeFunctionData({
       abi: erc20Abi,
       functionName: 'approve',
-      args: [quantumRouterAddress, maxUint256]
+      args: [routerAddress, maxUint256]
     })
     return track('approve', 'Approve router for liquidity', async () => {
       const { hash } = await sendSessionTransaction({ to: token, data })
@@ -37,9 +38,9 @@ export function useLiquidity() {
   }
 
   const addLiquidity = async (params: LiquidityParams) => {
-    if (!quantumRouterAddress) throw new Error('Router address missing.')
+    if (!routerAddress) throw new Error('Router address missing. Run Setup AMM first.')
     if (!smartAccountAddress) throw new Error('Smart account missing.')
-    const router = quantumRouterAddress
+    const router = routerAddress
     const recipient = params.recipient ?? smartAccountAddress
 
     const amountA = parseUnits(params.amountA || '0', params.decimalsA)

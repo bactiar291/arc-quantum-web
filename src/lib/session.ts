@@ -19,6 +19,18 @@ interface CipherPayload {
   data: string
 }
 
+type StoredSessions = Record<string, StoredSession>
+
+function isStoredSession(value: unknown): value is StoredSession {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'owner' in value &&
+    typeof value.owner === 'string' &&
+    'sessionAddress' in value
+  )
+}
+
 function bytesToBase64(bytes: Uint8Array) {
   let binary = ''
   bytes.forEach((byte) => {
@@ -71,21 +83,37 @@ export async function decryptSessionKey(payload: string, owner: Address) {
   return textDecoder.decode(decrypted) as Hex
 }
 
-export function saveStoredSession(session: StoredSession) {
-  localStorage.setItem(storageKey, JSON.stringify(session))
-}
-
-export function readStoredSession() {
+function readStoredSessions(): StoredSessions {
   const raw = localStorage.getItem(storageKey)
-  if (!raw) return null
+  if (!raw) return {}
   try {
-    return JSON.parse(raw) as StoredSession
+    const parsed = JSON.parse(raw) as unknown
+    if (isStoredSession(parsed)) {
+      return { [parsed.owner.toLowerCase()]: parsed }
+    }
+    return parsed as StoredSessions
   } catch {
     localStorage.removeItem(storageKey)
-    return null
+    return {}
   }
 }
 
-export function clearStoredSession() {
-  localStorage.removeItem(storageKey)
+export function saveStoredSession(session: StoredSession) {
+  const sessions = readStoredSessions()
+  sessions[session.owner.toLowerCase()] = session
+  localStorage.setItem(storageKey, JSON.stringify(sessions))
+}
+
+export function readStoredSession(owner: Address) {
+  return readStoredSessions()[owner.toLowerCase()] ?? null
+}
+
+export function clearStoredSession(owner?: Address) {
+  if (!owner) {
+    localStorage.removeItem(storageKey)
+    return
+  }
+  const sessions = readStoredSessions()
+  delete sessions[owner.toLowerCase()]
+  localStorage.setItem(storageKey, JSON.stringify(sessions))
 }

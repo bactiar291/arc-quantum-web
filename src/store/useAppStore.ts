@@ -3,7 +3,14 @@ import { persist } from 'zustand/middleware'
 import type { Address, Hex } from 'viem'
 
 export type AppTab = 'swap' | 'liquidity' | 'send' | 'deploy'
-export type TxKind = 'session' | 'swap' | 'liquidity' | 'send' | 'deploy' | 'approve'
+export type TxKind =
+  | 'session'
+  | 'swap'
+  | 'liquidity'
+  | 'send'
+  | 'deploy'
+  | 'approve'
+  | 'amm'
 export type TxStatus = 'pending' | 'success' | 'error'
 
 export interface Token {
@@ -35,6 +42,8 @@ interface AppState {
   sessionSignature: Hex | null
   deployedTokens: Token[]
   tokenBalances: Record<string, string>
+  ammFactoryAddress: Address | null
+  ammRouterAddress: Address | null
   pendingTx: Hex | null
   txHistory: Transaction[]
   activeTab: AppTab
@@ -50,6 +59,8 @@ interface AppState {
   setActiveTab: (tab: AppTab) => void
   addToken: (token: Token) => void
   removeToken: (address: Address) => void
+  setAmmConfig: (factory: Address | null, router: Address | null) => void
+  resetAmmConfig: () => void
   setPendingTx: (hash: Hex | null) => void
   addTx: (tx: Transaction) => void
   removeTx: (id: string) => void
@@ -69,6 +80,8 @@ export const useAppStore = create<AppState>()(
       sessionSignature: null,
       deployedTokens: [],
       tokenBalances: {},
+      ammFactoryAddress: null,
+      ammRouterAddress: null,
       pendingTx: null,
       txHistory: [],
       activeTab: 'swap',
@@ -109,6 +122,9 @@ export const useAppStore = create<AppState>()(
             (item) => item.address.toLowerCase() !== address.toLowerCase()
           )
         })),
+      setAmmConfig: (ammFactoryAddress, ammRouterAddress) =>
+        set({ ammFactoryAddress, ammRouterAddress }),
+      resetAmmConfig: () => set({ ammFactoryAddress: null, ammRouterAddress: null }),
       setPendingTx: (pendingTx) => set({ pendingTx }),
       addTx: (tx) =>
         set((state) => ({
@@ -131,6 +147,8 @@ export const useAppStore = create<AppState>()(
       partialize: (state) => ({
         deployedTokens: state.deployedTokens,
         txHistory: state.txHistory,
+        ammFactoryAddress: state.ammFactoryAddress,
+        ammRouterAddress: state.ammRouterAddress,
         activeTab: state.activeTab
       })
     }

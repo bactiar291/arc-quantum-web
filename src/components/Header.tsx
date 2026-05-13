@@ -11,11 +11,11 @@ export function Header() {
           </div>
           <div>
             <h1 className="font-display text-4xl leading-none tracking-normal md:text-5xl">
-              ARC QUANTUM LAB
+              ARC QUANTUM SWAP
             </h1>
             <div className="flex items-center gap-2 font-mono text-[11px] uppercase text-quantum-cyan">
               <Terminal className="h-3.5 w-3.5" />
-              Testnet dapp / zero backend / session EOA
+              Fixed USDC/EURC pair / smart session / zero backend
             </div>
           </div>
         </div>

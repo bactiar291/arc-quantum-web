@@ -34,7 +34,7 @@ interface SessionTxResult {
   receipt: TransactionReceipt
 }
 
-const oneDaySeconds = 24 * 60 * 60
+const sessionLifetimeSeconds = 30 * 24 * 60 * 60
 
 const requireExecutorGas = async (executor: Address) => {
   const balance = await arcPublicClient.getBalance({ address: executor })
@@ -73,11 +73,11 @@ export function useSession() {
       return
     }
 
-    const stored = readStoredSession()
+    const stored = readStoredSession(address)
     if (!stored?.smartAccountAddress) return
     if (stored.owner.toLowerCase() !== address.toLowerCase()) return
     if (stored.expiresAt <= Date.now()) {
-      clearStoredSession()
+      clearStoredSession(address)
       resetSession()
       return
     }
@@ -93,7 +93,7 @@ export function useSession() {
         )
       )
       .catch(() => {
-        clearStoredSession()
+        clearStoredSession(address)
         resetSession()
       })
   }, [address, resetSession, setSession])
@@ -104,13 +104,14 @@ export function useSession() {
   }, [isSessionActive, sessionKey])
 
   const initializeSession = useCallback(async () => {
+    if (isSessionActive && smartAccountAddress) return smartAccountAddress
     if (!address || !walletClient) {
       throw new Error('Connect wallet to initialize session.')
     }
 
     const privateKey = generatePrivateKey()
     const account = privateKeyToAccount(privateKey)
-    const expires = BigInt(Math.floor(Date.now() / 1000) + oneDaySeconds)
+    const expires = BigInt(Math.floor(Date.now() / 1000) + sessionLifetimeSeconds)
 
     const deployHash = await walletClient.deployContract({
       account: address,
@@ -149,12 +150,12 @@ export function useSession() {
 
     setSession(privateKey, account.address, smartAccount, expiresAt, null)
     return smartAccount
-  }, [address, setSession, walletClient])
+  }, [address, isSessionActive, setSession, smartAccountAddress, walletClient])
 
   const clearSession = useCallback(() => {
-    clearStoredSession()
+    if (address) clearStoredSession(address)
     resetSession()
-  }, [resetSession])
+  }, [address, resetSession])
 
   const sendSessionTransaction = useCallback(
     async (request: SessionTxRequest): Promise<SessionTxResult> => {

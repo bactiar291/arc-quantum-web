@@ -49,7 +49,7 @@ export function SessionInit() {
             SMART SESSION
           </div>
           <p className="mt-1 font-mono text-[11px] uppercase text-white/65">
-            Owner controls assets; gas payer key sends automated tx.
+            One static smart session per connected wallet.
           </p>
         </div>
         <div
@@ -94,9 +94,9 @@ export function SessionInit() {
             <span className="text-white/45">Not generated</span>
           )}
         </div>
-        <div className="border-2 border-quantum-red bg-black p-3">
+        <div className="border-2 border-quantum-cyan bg-black p-3 shadow-[3px_3px_0_#FFE500]">
           <div className="text-white/55">Gas Payer Private Key</div>
-          <div className="mt-1 break-all text-quantum-red">
+          <div className="mt-1 break-all text-quantum-cyan">
             {showPrivateKey && sessionKey
               ? sessionKey
               : sessionKey
@@ -105,7 +105,7 @@ export function SessionInit() {
           </div>
           <div className="mt-3 grid grid-cols-2 gap-2">
             <Button
-              variant="red"
+              variant="ghost"
               className="min-h-9 px-2 py-1 text-base"
               onClick={() => setShowPrivateKey((value) => !value)}
               disabled={!sessionKey}
@@ -147,9 +147,13 @@ export function SessionInit() {
       </div>
 
       <div className="mt-4 flex flex-col gap-3 sm:flex-row">
-        <Button onClick={() => void initializeSession()} className="flex-1">
+        <Button
+          onClick={() => void initializeSession()}
+          className="flex-1"
+          disabled={isSessionActive}
+        >
           <KeyRound className="h-5 w-5" />
-          Create Smart Session
+          {isSessionActive ? 'Session Ready' : 'Create Smart Session'}
         </Button>
         <Button variant="cyan" onClick={() => void copySmartAccount()} disabled={!smartAccountAddress}>
           <Copy className="h-5 w-5" />

@@ -5,13 +5,16 @@ const optionalAddress = (value: string | undefined): Address | undefined => {
   return value
 }
 
-export const quantumRouterAddress = optionalAddress(
+export const envQuantumRouterAddress = optionalAddress(
   import.meta.env.VITE_QUANTUM_ROUTER_ADDRESS
 )
 
-export const quantumFactoryAddress = optionalAddress(
+export const envQuantumFactoryAddress = optionalAddress(
   import.meta.env.VITE_QUANTUM_FACTORY_ADDRESS
 )
+
+export const quantumRouterAddress = envQuantumRouterAddress
+export const quantumFactoryAddress = envQuantumFactoryAddress
 
 export const maxUint256 = (1n << 256n) - 1n
 
@@ -88,6 +91,11 @@ export const quantumTokenAbi = [
 ] as const
 
 export const quantumRouterAbi = [
+  {
+    type: 'constructor',
+    stateMutability: 'nonpayable',
+    inputs: [{ name: 'factory_', type: 'address' }]
+  },
   {
     type: 'function',
     name: 'factory',

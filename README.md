@@ -45,6 +45,12 @@ Dashboard and token selectors auto-load Arc testnet USDC and EURC:
 Swap is simplified to a fixed USDC/EURC pair with a direction switch, so users
 do not need to import tokens or choose token-in/token-out manually.
 
+## AMM Setup
+
+If router/factory env is empty, the app shows `Setup AMM`. The connected wallet
+deploys `QuantumFactory` and `QuantumRouter` once, then saves both addresses in
+local storage for swap/liquidity.
+
 ## Contracts
 
 Contracts live in `contracts/src`:

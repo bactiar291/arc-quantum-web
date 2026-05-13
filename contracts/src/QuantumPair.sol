@@ -64,7 +64,7 @@ contract QuantumPair {
         return true;
     }
 
-    function mint(address to) external onlyFactory returns (uint256 liquidity) {
+    function mint(address to) external returns (uint256 liquidity) {
         uint256 balance0 = IQuantumERC20(token0).balanceOf(address(this));
         uint256 balance1 = IQuantumERC20(token1).balanceOf(address(this));
         uint256 amount0 = balance0 - reserve0;
@@ -93,7 +93,7 @@ contract QuantumPair {
         uint256 amountIn,
         uint256 amountOutMin,
         address to
-    ) external onlyFactory returns (uint256 amountOut) {
+    ) external returns (uint256 amountOut) {
         require(tokenIn == token0 || tokenIn == token1, "TOKEN");
         require(to != token0 && to != token1, "TO");
 

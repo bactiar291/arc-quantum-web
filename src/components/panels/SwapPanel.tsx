@@ -1,9 +1,9 @@
-import { ArrowLeftRight, CircleDollarSign, ShieldCheck, Shuffle } from 'lucide-react'
+import { ArrowDownUp, CircleDollarSign, ShieldCheck, Shuffle } from 'lucide-react'
 import { useState } from 'react'
 import type { Hex } from 'viem'
 
-import { quantumRouterAddress } from '../../lib/contracts'
 import { EURC_TOKEN, USDC_TOKEN } from '../../lib/tokens'
+import { useAmmConfig } from '../../hooks/useAmm'
 import { useSession } from '../../hooks/useSession'
 import { useSwap } from '../../hooks/useSwap'
 import { Button } from '../ui/Button'
@@ -21,11 +21,12 @@ export function SwapPanel() {
   const [hash, setHash] = useState<Hex>()
   const [error, setError] = useState('')
   const { isSessionActive } = useSession()
+  const { routerAddress } = useAmmConfig()
   const { approveRouter, executeSwap } = useSwap()
 
   const tokenIn = direction === 'usdcToEurc' ? USDC_TOKEN : EURC_TOKEN
   const tokenOut = direction === 'usdcToEurc' ? EURC_TOKEN : USDC_TOKEN
-  const disabled = !isSessionActive || !quantumRouterAddress || busy
+  const disabled = !isSessionActive || !routerAddress || busy
   const swapDisabled = disabled || !amount
 
   const run = async (mode: 'approve' | 'swap') => {
@@ -62,7 +63,7 @@ export function SwapPanel() {
         <div className="font-display text-2xl text-quantum-yellow">
           FIXED ARC PAIR
         </div>
-        <div className="mt-2 grid gap-3 md:grid-cols-[1fr_auto_1fr] md:items-center">
+        <div className="mt-2 grid gap-3">
           <div className="border-2 border-white p-3">
             <div className="font-display text-3xl">{tokenIn.symbol}</div>
             <div className="truncate font-mono text-xs text-white/50">
@@ -71,14 +72,15 @@ export function SwapPanel() {
           </div>
           <Button
             variant="cyan"
-            className="w-full md:w-14"
+            className="w-full"
             onClick={() =>
               setDirection((current) =>
                 current === 'usdcToEurc' ? 'eurcToUsdc' : 'usdcToEurc'
               )
             }
           >
-            <ArrowLeftRight className="h-5 w-5" />
+            <ArrowDownUp className="h-5 w-5" />
+            Switch Direction
           </Button>
           <div className="border-2 border-white p-3">
             <div className="font-display text-3xl">{tokenOut.symbol}</div>
