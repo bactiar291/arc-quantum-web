@@ -7,9 +7,10 @@ const textDecoder = new TextDecoder()
 export interface StoredSession {
   owner: Address
   sessionAddress: Address
+  smartAccountAddress: Address
   encryptedKey: string
   expiresAt: number
-  signature: Hex
+  signature: Hex | null
   createdAt: number
 }
 

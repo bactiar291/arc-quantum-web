@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useMemo } from 'react'
 import {
   createWalletClient,
+  encodeFunctionData,
   http,
+  parseEventLogs,
   type Address,
   type Hex,
   type TransactionReceipt
@@ -10,6 +12,8 @@ import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts'
 import { useAccount, useWalletClient } from 'wagmi'
 
 import { ARC_CHAIN_ID, ARC_RPC_URL, arcPublicClient, arcTestnet } from '../lib/arc'
+import { smartSessionAccountBytecode } from '../lib/bytecode'
+import { smartSessionAccountAbi } from '../lib/contracts'
 import {
   clearStoredSession,
   decryptSessionKey,
@@ -20,7 +24,7 @@ import {
 import { useAppStore } from '../store/useAppStore'
 
 interface SessionTxRequest {
-  to?: Address
+  to: Address
   data?: Hex
   value?: bigint
 }
@@ -38,6 +42,7 @@ export function useSession() {
   const {
     sessionKey,
     sessionAddress,
+    smartAccountAddress,
     sessionExpiry,
     sessionSignature,
     setWallet,
@@ -46,7 +51,7 @@ export function useSession() {
   } = useAppStore()
 
   const isSessionActive = Boolean(
-    sessionKey && sessionAddress && sessionExpiry > Date.now()
+    sessionKey && sessionAddress && smartAccountAddress && sessionExpiry > Date.now()
   )
 
   useEffect(() => {
@@ -60,7 +65,7 @@ export function useSession() {
     }
 
     const stored = readStoredSession()
-    if (!stored) return
+    if (!stored?.smartAccountAddress) return
     if (stored.owner.toLowerCase() !== address.toLowerCase()) return
     if (stored.expiresAt <= Date.now()) {
       clearStoredSession()
@@ -70,7 +75,13 @@ export function useSession() {
 
     decryptSessionKey(stored.encryptedKey, address)
       .then((key) =>
-        setSession(key, stored.sessionAddress, stored.expiresAt, stored.signature)
+        setSession(
+          key,
+          stored.sessionAddress,
+          stored.smartAccountAddress,
+          stored.expiresAt,
+          stored.signature
+        )
       )
       .catch(() => {
         clearStoredSession()
@@ -92,25 +103,27 @@ export function useSession() {
     const account = privateKeyToAccount(privateKey)
     const expires = BigInt(Math.floor(Date.now() / 1000) + oneDaySeconds)
 
-    const signature = await walletClient.signTypedData({
+    const deployHash = await walletClient.deployContract({
       account: address,
-      domain: {
-        name: 'ArcQuantumLab',
-        version: '1',
-        chainId: ARC_CHAIN_ID
-      },
-      types: {
-        Session: [
-          { name: 'key', type: 'address' },
-          { name: 'expires', type: 'uint256' }
-        ]
-      },
-      primaryType: 'Session',
-      message: {
-        key: account.address,
-        expires
-      }
+      abi: smartSessionAccountAbi,
+      bytecode: smartSessionAccountBytecode,
+      args: [address]
     })
+    const deployReceipt = await arcPublicClient.waitForTransactionReceipt({
+      hash: deployHash
+    })
+    if (!deployReceipt.contractAddress) {
+      throw new Error('Smart account deploy failed.')
+    }
+    const smartAccount = deployReceipt.contractAddress
+    const enableHash = await walletClient.writeContract({
+      account: address,
+      address: smartAccount,
+      abi: smartSessionAccountAbi,
+      functionName: 'enableSession',
+      args: [account.address, expires]
+    })
+    await arcPublicClient.waitForTransactionReceipt({ hash: enableHash })
 
     const expiresAt = Number(expires) * 1000
     const encryptedKey = await encryptSessionKey(privateKey, address)
@@ -118,14 +131,15 @@ export function useSession() {
     saveStoredSession({
       owner: address,
       sessionAddress: account.address,
+      smartAccountAddress: smartAccount,
       encryptedKey,
       expiresAt,
-      signature,
+      signature: null,
       createdAt: Date.now()
     })
 
-    setSession(privateKey, account.address, expiresAt, signature)
-    return account.address
+    setSession(privateKey, account.address, smartAccount, expiresAt, null)
+    return smartAccount
   }, [address, setSession, walletClient])
 
   const clearSession = useCallback(() => {
@@ -138,6 +152,9 @@ export function useSession() {
       if (!sessionAccount) {
         throw new Error('Session inactive. Initialize session first.')
       }
+      if (!smartAccountAddress) {
+        throw new Error('Smart account missing. Initialize session first.')
+      }
 
       const wallet = createWalletClient({
         account: sessionAccount,
@@ -145,37 +162,91 @@ export function useSession() {
         transport: http(ARC_RPC_URL)
       })
 
+      const data = encodeFunctionData({
+        abi: smartSessionAccountAbi,
+        functionName: 'execute',
+        args: [request.to, request.value ?? 0n, request.data ?? '0x']
+      })
+
       const gas = await arcPublicClient.estimateGas({
         account: sessionAccount.address,
-        to: request.to,
-        data: request.data,
-        value: request.value ?? 0n
+        to: smartAccountAddress,
+        data,
+        value: 0n
       })
       const gasWithBuffer = gas + gas / 5n
 
       const hash = await wallet.sendTransaction({
         account: sessionAccount,
         chain: arcTestnet,
-        to: request.to,
-        data: request.data,
-        value: request.value ?? 0n,
+        to: smartAccountAddress,
+        data,
+        value: 0n,
         gas: gasWithBuffer
       })
       const receipt = await arcPublicClient.waitForTransactionReceipt({ hash })
       return { hash, receipt }
     },
-    [sessionAccount]
+    [sessionAccount, smartAccountAddress]
+  )
+
+  const deployFromSmartAccount = useCallback(
+    async (initCode: Hex, value = 0n): Promise<SessionTxResult & { address: Address }> => {
+      if (!sessionAccount) {
+        throw new Error('Session inactive. Initialize session first.')
+      }
+      if (!smartAccountAddress) {
+        throw new Error('Smart account missing. Initialize session first.')
+      }
+
+      const wallet = createWalletClient({
+        account: sessionAccount,
+        chain: arcTestnet,
+        transport: http(ARC_RPC_URL)
+      })
+      const data = encodeFunctionData({
+        abi: smartSessionAccountAbi,
+        functionName: 'deploy',
+        args: [initCode, value]
+      })
+      const gas = await arcPublicClient.estimateGas({
+        account: sessionAccount.address,
+        to: smartAccountAddress,
+        data,
+        value: 0n
+      })
+      const hash = await wallet.sendTransaction({
+        account: sessionAccount,
+        chain: arcTestnet,
+        to: smartAccountAddress,
+        data,
+        value: 0n,
+        gas: gas + gas / 5n
+      })
+      const receipt = await arcPublicClient.waitForTransactionReceipt({ hash })
+      const logs = parseEventLogs({
+        abi: smartSessionAccountAbi,
+        eventName: 'ContractDeployed',
+        logs: receipt.logs
+      })
+      const deployed = logs[0]?.args.deployed
+      if (!deployed) throw new Error('Deploy event missing.')
+      return { hash, receipt, address: deployed }
+    },
+    [sessionAccount, smartAccountAddress]
   )
 
   return {
     sessionKey,
     sessionAddress,
+    smartAccountAddress,
     sessionAccount,
     sessionExpiry,
     sessionSignature,
     isSessionActive,
     initializeSession,
     clearSession,
-    sendSessionTransaction
+    sendSessionTransaction,
+    deployFromSmartAccount
   }
 }

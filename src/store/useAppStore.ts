@@ -30,6 +30,7 @@ interface AppState {
   isConnected: boolean
   sessionKey: Hex | null
   sessionAddress: Address | null
+  smartAccountAddress: Address | null
   sessionExpiry: number
   sessionSignature: Hex | null
   deployedTokens: Token[]
@@ -41,6 +42,7 @@ interface AppState {
   setSession: (
     key: Hex | null,
     address: Address | null,
+    smartAccountAddress: Address | null,
     expiry: number,
     signature?: Hex | null
   ) => void
@@ -60,6 +62,7 @@ export const useAppStore = create<AppState>()(
       isConnected: false,
       sessionKey: null,
       sessionAddress: null,
+      smartAccountAddress: null,
       sessionExpiry: 0,
       sessionSignature: null,
       deployedTokens: [],
@@ -68,12 +71,25 @@ export const useAppStore = create<AppState>()(
       txHistory: [],
       activeTab: 'swap',
       setWallet: (address, isConnected) => set({ userAddress: address, isConnected }),
-      setSession: (sessionKey, sessionAddress, sessionExpiry, sessionSignature) =>
-        set({ sessionKey, sessionAddress, sessionExpiry, sessionSignature }),
+      setSession: (
+        sessionKey,
+        sessionAddress,
+        smartAccountAddress,
+        sessionExpiry,
+        sessionSignature
+      ) =>
+        set({
+          sessionKey,
+          sessionAddress,
+          smartAccountAddress,
+          sessionExpiry,
+          sessionSignature
+        }),
       resetSession: () =>
         set({
           sessionKey: null,
           sessionAddress: null,
+          smartAccountAddress: null,
           sessionExpiry: 0,
           sessionSignature: null
         }),

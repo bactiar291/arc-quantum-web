@@ -42,7 +42,7 @@ export function Dashboard() {
   const txHistory = useAppStore((state) => state.txHistory)
   const addToken = useAppStore((state) => state.addToken)
   const removeToken = useAppStore((state) => state.removeToken)
-  const { sessionAddress } = useSession()
+  const { smartAccountAddress } = useSession()
 
   const importToken = () => {
     if (!isAddress(address)) return
@@ -100,7 +100,7 @@ export function Dashboard() {
           {tokens.length ? (
             tokens.map((token) => (
               <div key={token.address} className="grid grid-cols-[1fr_auto] gap-2">
-                <TokenBalance token={token} owner={sessionAddress ?? undefined} />
+                <TokenBalance token={token} owner={smartAccountAddress ?? undefined} />
                 <button
                   aria-label={`Remove ${token.symbol}`}
                   className="grid w-11 place-items-center border-2 border-white bg-quantum-red text-white shadow-[3px_3px_0_#FFE500]"

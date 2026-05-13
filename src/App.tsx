@@ -48,8 +48,8 @@ export default function App() {
                   {activeTab}
                 </div>
                 <p className="mt-1 max-w-3xl font-mono text-xs uppercase text-white/70">
-                  Arc Testnet execution console. Session wallet auto-signs after
-                  init; fund it with testnet USDC before sending tx.
+                  Arc Testnet execution console. Smart account holds assets;
+                  session key executes after owner approval.
                 </p>
               </div>
               <div className="flex items-center gap-2 border-2 border-white bg-black px-3 py-2 font-mono text-xs uppercase text-quantum-cyan">

@@ -20,7 +20,7 @@ interface LiquidityParams {
 }
 
 export function useLiquidity() {
-  const { sessionAddress, sendSessionTransaction } = useSession()
+  const { smartAccountAddress, sendSessionTransaction } = useSession()
   const track = useTrackedTx()
 
   const approveRouter = async (token: Address) => {
@@ -38,7 +38,9 @@ export function useLiquidity() {
 
   const addLiquidity = async (params: LiquidityParams) => {
     if (!quantumRouterAddress) throw new Error('Router address missing.')
-    if (!sessionAddress) throw new Error('Session address missing.')
+    if (!smartAccountAddress) throw new Error('Smart account missing.')
+    const router = quantumRouterAddress
+    const recipient = params.recipient ?? smartAccountAddress
 
     const amountA = parseUnits(params.amountA || '0', params.decimalsA)
     const amountB = parseUnits(params.amountB || '0', params.decimalsB)
@@ -54,14 +56,14 @@ export function useLiquidity() {
         params.tokenB,
         amountA,
         amountB,
-        params.recipient ?? sessionAddress,
+        recipient,
         BigInt(Math.floor(Date.now() / 1000) + 60 * 20)
       ]
     })
 
     return track('liquidity', 'Add quantum liquidity', async () => {
       const { hash } = await sendSessionTransaction({
-        to: quantumRouterAddress,
+        to: router,
         data
       })
       return { hash }

@@ -20,7 +20,7 @@ interface SwapParams {
 }
 
 export function useSwap() {
-  const { sessionAddress, sendSessionTransaction } = useSession()
+  const { smartAccountAddress, sendSessionTransaction } = useSession()
   const track = useTrackedTx()
 
   const approveRouter = async (token: Address) => {
@@ -38,7 +38,9 @@ export function useSwap() {
 
   const executeSwap = async (params: SwapParams) => {
     if (!quantumRouterAddress) throw new Error('Router address missing.')
-    if (!sessionAddress) throw new Error('Session address missing.')
+    if (!smartAccountAddress) throw new Error('Smart account missing.')
+    const router = quantumRouterAddress
+    const recipient = params.recipient ?? smartAccountAddress
 
     const amountIn = parseUnits(params.amount || '0', params.decimals)
     if (amountIn <= 0n) throw new Error('Amount must be greater than zero.')
@@ -62,14 +64,14 @@ export function useSwap() {
         amountIn,
         amountOutMin,
         path,
-        params.recipient ?? sessionAddress,
+        recipient,
         deadline
       ]
     })
 
     return track('swap', 'Quantum swap', async () => {
       const { hash } = await sendSessionTransaction({
-        to: quantumRouterAddress,
+        to: router,
         data
       })
       return { hash }

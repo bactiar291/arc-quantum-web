@@ -160,3 +160,105 @@ export const quantumFactoryAbi = [
     outputs: [{ name: 'pair', type: 'address' }]
   }
 ] as const
+
+export const smartSessionAccountAbi = [
+  {
+    type: 'constructor',
+    stateMutability: 'payable',
+    inputs: [{ name: 'owner_', type: 'address' }]
+  },
+  {
+    type: 'event',
+    name: 'SessionEnabled',
+    inputs: [
+      { name: 'key', type: 'address', indexed: true },
+      { name: 'expiresAt', type: 'uint64', indexed: false }
+    ],
+    anonymous: false
+  },
+  {
+    type: 'event',
+    name: 'SessionRevoked',
+    inputs: [{ name: 'key', type: 'address', indexed: true }],
+    anonymous: false
+  },
+  {
+    type: 'event',
+    name: 'ContractDeployed',
+    inputs: [
+      { name: 'deployed', type: 'address', indexed: true },
+      { name: 'value', type: 'uint256', indexed: false }
+    ],
+    anonymous: false
+  },
+  {
+    type: 'function',
+    name: 'owner',
+    stateMutability: 'view',
+    inputs: [],
+    outputs: [{ type: 'address' }]
+  },
+  {
+    type: 'function',
+    name: 'nonce',
+    stateMutability: 'view',
+    inputs: [],
+    outputs: [{ type: 'uint256' }]
+  },
+  {
+    type: 'function',
+    name: 'enableSession',
+    stateMutability: 'nonpayable',
+    inputs: [
+      { name: 'key', type: 'address' },
+      { name: 'expiresAt', type: 'uint64' }
+    ],
+    outputs: []
+  },
+  {
+    type: 'function',
+    name: 'revokeSession',
+    stateMutability: 'nonpayable',
+    inputs: [{ name: 'key', type: 'address' }],
+    outputs: []
+  },
+  {
+    type: 'function',
+    name: 'isSessionActive',
+    stateMutability: 'view',
+    inputs: [{ name: 'key', type: 'address' }],
+    outputs: [{ type: 'bool' }]
+  },
+  {
+    type: 'function',
+    name: 'execute',
+    stateMutability: 'nonpayable',
+    inputs: [
+      { name: 'to', type: 'address' },
+      { name: 'value', type: 'uint256' },
+      { name: 'data', type: 'bytes' }
+    ],
+    outputs: [{ name: 'result', type: 'bytes' }]
+  },
+  {
+    type: 'function',
+    name: 'executeBatch',
+    stateMutability: 'nonpayable',
+    inputs: [
+      { name: 'targets', type: 'address[]' },
+      { name: 'values', type: 'uint256[]' },
+      { name: 'payloads', type: 'bytes[]' }
+    ],
+    outputs: [{ name: 'results', type: 'bytes[]' }]
+  },
+  {
+    type: 'function',
+    name: 'deploy',
+    stateMutability: 'nonpayable',
+    inputs: [
+      { name: 'initCode', type: 'bytes' },
+      { name: 'value', type: 'uint256' }
+    ],
+    outputs: [{ name: 'deployed', type: 'address' }]
+  }
+] as const

@@ -1,6 +1,6 @@
 # Arc Quantum Lab
 
-Neo-brutalist Arc Testnet DApp for session-wallet execution:
+Neo-brutalist Arc Testnet DApp for smart-session execution:
 swap, liquidity, token send, random batch send, and ERC20 deploy.
 
 ## Commands
@@ -26,12 +26,14 @@ VITE_QUANTUM_FACTORY_ADDRESS=
 
 ## Session Model
 
-The app creates an ephemeral EOA session key after one EIP-712 typed
-signature. That EOA signs later transactions automatically from the browser.
+The app deploys a `SmartSessionAccount` owned by the connected wallet, then
+enables an ephemeral session key on-chain. The session key executes calls
+through the smart account without repeated MetaMask popups.
 
-Important: plain EOAs cannot delegate universal signing authority on-chain.
-The session wallet must hold Arc Testnet gas and token balances/allowances.
-Use testnet funds only.
+Assets for swap/send/deploy sit in the smart account. The connected EOA stays
+owner and can revoke the session. The session key still needs enough native gas
+to submit transactions to the smart account because this app has no backend
+relayer/paymaster. Use testnet funds only.
 
 ## Contracts
 
@@ -41,6 +43,8 @@ Contracts live in `contracts/src`:
 - `QuantumFactory.sol`: pair factory.
 - `QuantumPair.sol`: two-token constant-product AMM pair.
 - `QuantumRouter.sol`: add liquidity and two-token swap router.
+- `SmartSessionAccount.sol`: owner-controlled smart account with expiring
+  session keys and contract deployment.
 
 Compile:
 
@@ -49,7 +53,8 @@ Compile:
   -o contracts/build --overwrite \
   contracts/src/QuantumToken.sol \
   contracts/src/QuantumFactory.sol \
-  contracts/src/QuantumRouter.sol
+  contracts/src/QuantumRouter.sol \
+  contracts/src/SmartSessionAccount.sol
 ```
 
 ## Deploy

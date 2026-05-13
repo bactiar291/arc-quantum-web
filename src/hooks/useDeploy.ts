@@ -1,6 +1,5 @@
-import { createWalletClient, http, parseUnits, type Address } from 'viem'
+import { encodeDeployData, parseUnits } from 'viem'
 
-import { ARC_RPC_URL, arcPublicClient, arcTestnet } from '../lib/arc'
 import { quantumTokenBytecode } from '../lib/bytecode'
 import { quantumTokenAbi } from '../lib/contracts'
 import { useAppStore } from '../store/useAppStore'
@@ -15,7 +14,7 @@ interface DeployParams {
 }
 
 export function useDeploy() {
-  const { sessionAccount } = useSession()
+  const { sessionAccount, deployFromSmartAccount } = useSession()
   const addToken = useAppStore((state) => state.addToken)
   const track = useTrackedTx()
 
@@ -33,31 +32,23 @@ export function useDeploy() {
       throw new Error('QuantumToken bytecode missing.')
     }
 
-    const wallet = createWalletClient({
-      account: sessionAccount,
-      chain: arcTestnet,
-      transport: http(ARC_RPC_URL)
+    const initCode = encodeDeployData({
+      abi: quantumTokenAbi,
+      bytecode: quantumTokenBytecode,
+      args: [params.name.trim(), params.symbol.trim().toUpperCase(), supply, params.decimals]
     })
 
     return track('deploy', `Deploy ${params.symbol.toUpperCase()}`, async () => {
-      const hash = await wallet.deployContract({
-        abi: quantumTokenAbi,
-        bytecode: quantumTokenBytecode,
-        args: [params.name.trim(), params.symbol.trim().toUpperCase(), supply, params.decimals]
-      })
-      const receipt = await arcPublicClient.waitForTransactionReceipt({ hash })
-      if (!receipt.contractAddress) {
-        throw new Error('Deploy receipt has no contract address.')
-      }
+      const result = await deployFromSmartAccount(initCode)
       addToken({
-        address: receipt.contractAddress as Address,
+        address: result.address,
         name: params.name.trim(),
         symbol: params.symbol.trim().toUpperCase(),
         decimals: params.decimals,
         createdAt: Date.now(),
-        txHash: hash
+        txHash: result.hash
       })
-      return { hash, value: receipt.contractAddress as Address }
+      return { hash: result.hash, value: result.address }
     })
   }
 
