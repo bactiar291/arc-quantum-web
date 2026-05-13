@@ -1,3 +1,4 @@
+import './polyfills'
 import './styles/globals.css'
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
