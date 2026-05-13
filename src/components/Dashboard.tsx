@@ -5,7 +5,6 @@ import { useReadContract } from 'wagmi'
 
 import { ARC_CHAIN_ID, txUrl } from '../lib/arc'
 import { erc20Abi } from '../lib/contracts'
-import { useSession } from '../hooks/useSession'
 import { DEFAULT_TOKEN_ADDRESSES, mergeTokens } from '../lib/tokens'
 import { useAppStore, type Token } from '../store/useAppStore'
 import { Button } from './ui/Button'
@@ -46,7 +45,7 @@ export function Dashboard() {
   const removeToken = useAppStore((state) => state.removeToken)
   const removeTx = useAppStore((state) => state.removeTx)
   const clearTxHistory = useAppStore((state) => state.clearTxHistory)
-  const { smartAccountAddress } = useSession()
+  const ownerAddress = useAppStore((state) => state.userAddress)
 
   const importToken = () => {
     if (!isAddress(address)) return
@@ -66,7 +65,7 @@ export function Dashboard() {
     <Panel className="animate-reveal">
       <div className="flex items-center gap-2 border-b-2 border-white pb-3 font-display text-3xl">
         <WalletCards className="h-6 w-6 text-quantum-yellow" />
-        WALLET DASHBOARD
+        ARC WALLET
       </div>
 
       <div className="mt-4 space-y-3">
@@ -104,15 +103,15 @@ export function Dashboard() {
           {tokens.length ? (
             tokens.map((token) => (
               <div key={token.address} className="grid grid-cols-[1fr_auto] gap-2">
-                <TokenBalance token={token} owner={smartAccountAddress ?? undefined} />
+                <TokenBalance token={token} owner={ownerAddress ?? undefined} />
                 {DEFAULT_TOKEN_ADDRESSES.has(token.address.toLowerCase()) ? (
-                  <div className="grid w-11 place-items-center border-2 border-white bg-black font-mono text-[10px] text-quantum-cyan shadow-[3px_3px_0_#FFE500]">
+                  <div className="grid w-11 place-items-center border-2 border-white bg-black font-mono text-[10px] text-quantum-cyan shadow-[3px_3px_0_#D8C95C]">
                     DEF
                   </div>
                 ) : (
                   <button
                     aria-label={`Remove ${token.symbol}`}
-                    className="grid w-11 place-items-center border-2 border-white bg-quantum-red text-white shadow-[3px_3px_0_#FFE500]"
+                    className="grid w-11 place-items-center border-2 border-white bg-quantum-red text-white shadow-[3px_3px_0_#D8C95C]"
                     onClick={() => removeToken(token.address)}
                   >
                     <Trash2 className="h-4 w-4" />

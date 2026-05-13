@@ -1,82 +1,99 @@
-import { Activity, Boxes, Rocket, Send, Shuffle } from 'lucide-react'
+import { Fuel, GitBranchPlus, Send, Shuffle, Terminal } from 'lucide-react'
+import { useState } from 'react'
 
-import { AmmSetup } from './components/AmmSetup'
 import { Dashboard } from './components/Dashboard'
 import { Header } from './components/Header'
 import { QuantumVisual } from './components/QuantumVisual'
-import { SessionInit } from './components/SessionInit'
 import { StatusBar } from './components/StatusBar'
-import { TabNav } from './components/TabNav'
-import { DeployPanel } from './components/panels/DeployPanel'
-import { LiquidityPanel } from './components/panels/LiquidityPanel'
-import { SendPanel } from './components/panels/SendPanel'
-import { SwapPanel } from './components/panels/SwapPanel'
+import { BridgePanel } from './components/panels/BridgePanel'
+import { GasPanel } from './components/panels/GasPanel'
+import { OfficialSwapPanel } from './components/panels/OfficialSwapPanel'
+import { StableSendPanel } from './components/panels/StableSendPanel'
+import { Button } from './components/ui/Button'
 import { Panel } from './components/ui/Panel'
-import { useAppStore, type AppTab } from './store/useAppStore'
+import { ArcKitProvider } from './hooks/useArcAppKit'
 
-const tabIcons: Record<AppTab, typeof Shuffle> = {
-  swap: Shuffle,
-  liquidity: Boxes,
-  send: Send,
-  deploy: Rocket
+type TabId = 'swap' | 'send' | 'bridge' | 'gas'
+
+const tabs: Array<{ id: TabId; label: string; icon: typeof Shuffle }> = [
+  { id: 'swap', label: 'Swap', icon: Shuffle },
+  { id: 'send', label: 'Send', icon: Send },
+  { id: 'bridge', label: 'Bridge', icon: GitBranchPlus },
+  { id: 'gas', label: 'Gas', icon: Fuel }
+]
+
+function ActivePanel({ tab }: { tab: TabId }) {
+  if (tab === 'send') return <StableSendPanel />
+  if (tab === 'bridge') return <BridgePanel />
+  if (tab === 'gas') return <GasPanel />
+  return <OfficialSwapPanel />
 }
 
-function ActivePanel() {
-  const activeTab = useAppStore((state) => state.activeTab)
-
-  if (activeTab === 'liquidity') return <LiquidityPanel />
-  if (activeTab === 'send') return <SendPanel />
-  if (activeTab === 'deploy') return <DeployPanel />
-  return <SwapPanel />
-}
-
-export default function App() {
-  const activeTab = useAppStore((state) => state.activeTab)
-  const ActiveIcon = tabIcons[activeTab]
+function Shell() {
+  const [activeTab, setActiveTab] = useState<TabId>('swap')
+  const active = tabs.find((tab) => tab.id === activeTab) ?? tabs[0]
+  const ActiveIcon = active.icon
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-quantum-black text-white">
       <div className="grid-noise" />
       <Header />
 
-      <main className="mx-auto grid w-full max-w-[1520px] grid-cols-1 gap-5 px-4 pb-24 pt-4 md:px-6 xl:grid-cols-[1fr_360px]">
+      <main className="mx-auto grid w-full max-w-[1520px] grid-cols-1 gap-5 px-4 pb-24 pt-4 md:px-6 xl:grid-cols-[minmax(0,1fr)_390px]">
         <section className="space-y-5">
           <Panel className="animate-reveal" shadow="cyan">
             <div className="mb-4 flex flex-col justify-between gap-3 border-b-2 border-white pb-4 md:flex-row md:items-center">
               <div>
                 <div className="flex items-center gap-3 font-display text-4xl leading-none md:text-5xl">
                   <ActiveIcon className="h-8 w-8 text-quantum-yellow" />
-                  {activeTab}
+                  {active.label}
                 </div>
-                <p className="mt-1 max-w-3xl font-mono text-xs uppercase text-white/70">
-                  Arc Testnet execution console. Smart account holds assets;
-                  session key executes after owner approval.
-                </p>
+                <div className="mt-1 flex items-center gap-2 font-mono text-xs uppercase text-white/60">
+                  <Terminal className="h-4 w-4 text-quantum-cyan" />
+                  Arc Testnet stablecoin console
+                </div>
               </div>
-              <div className="flex items-center gap-2 border-2 border-white bg-black px-3 py-2 font-mono text-xs uppercase text-quantum-cyan">
-                <Activity className="h-4 w-4" />
-                LIVE RPC
+              <div className="border-2 border-white bg-black px-3 py-2 font-mono text-xs uppercase text-quantum-green">
+                Official Circle App Kit
               </div>
             </div>
-            <TabNav />
+
+            <nav className="grid grid-cols-2 gap-3 md:grid-cols-4">
+              {tabs.map((tab) => {
+                const Icon = tab.icon
+                return (
+                  <Button
+                    key={tab.id}
+                    variant={activeTab === tab.id ? 'primary' : 'ghost'}
+                    onClick={() => setActiveTab(tab.id)}
+                    className="w-full"
+                  >
+                    <Icon className="h-5 w-5" />
+                    {tab.label}
+                  </Button>
+                )
+              })}
+            </nav>
           </Panel>
 
-          <div className="grid grid-cols-1 gap-5 2xl:grid-cols-[minmax(0,1fr)_420px]">
-            <ActivePanel />
-            <div className="space-y-5">
-              <SessionInit />
-              <QuantumVisual />
-            </div>
-          </div>
+          <ActivePanel tab={activeTab} />
         </section>
 
         <aside className="space-y-5">
           <Dashboard />
-          <AmmSetup />
+          <QuantumVisual />
         </aside>
       </main>
 
       <StatusBar />
     </div>
+  )
+}
+
+export default function App() {
+  return (
+    <ArcKitProvider>
+      <Shell />
+    </ArcKitProvider>
   )
 }

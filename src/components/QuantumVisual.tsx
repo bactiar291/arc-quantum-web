@@ -11,7 +11,7 @@ export function QuantumVisual() {
             QUANTUM CORE
           </div>
           <p className="mt-2 max-w-sm font-mono text-xs uppercase leading-5 text-white/70">
-            Brutal 3D reactor visual. Bottom dev badge kept compact by design.
+            Arc liquidity signal / Lugert dev mark
           </p>
         </div>
 
@@ -29,7 +29,7 @@ export function QuantumVisual() {
         <img
           src={devMark}
           alt="Lugert developer mark"
-          className="absolute bottom-0 right-0 w-36 border-2 border-white bg-black shadow-[4px_4px_0_#00FFE5] md:w-44"
+          className="absolute bottom-0 right-0 w-36 border-2 border-white bg-black shadow-[4px_4px_0_#5FC8BA] md:w-44"
         />
       </div>
     </Panel>
