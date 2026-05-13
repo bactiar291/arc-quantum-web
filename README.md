@@ -17,7 +17,8 @@ npm run build
 Copy `.env.example` to `.env.local` and fill router/factory after contract deploy.
 
 ```env
-VITE_ARC_RPC_URL=https://rpc.testnet.arc.network
+VITE_ARC_RPC_URL=https://arc-testnet.g.alchemy.com/v2/YOUR_ALCHEMY_KEY
+VITE_ARC_FALLBACK_RPC_URL=https://rpc.testnet.arc.network
 VITE_ARC_CHAIN_ID=5042002
 VITE_ARC_EXPLORER=https://testnet.arcscan.app
 VITE_QUANTUM_ROUTER_ADDRESS=

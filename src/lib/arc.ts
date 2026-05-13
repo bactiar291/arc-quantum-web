@@ -1,10 +1,32 @@
-import { createPublicClient, defineChain, http, type Address, type Hex } from 'viem'
+import {
+  createPublicClient,
+  defineChain,
+  fallback,
+  http,
+  type Address,
+  type Hex
+} from 'viem'
 
 export const ARC_CHAIN_ID = Number(import.meta.env.VITE_ARC_CHAIN_ID || 5042002)
-export const ARC_RPC_URL =
+export const ARC_PRIMARY_RPC_URL =
   import.meta.env.VITE_ARC_RPC_URL || 'https://rpc.testnet.arc.network'
+export const ARC_FALLBACK_RPC_URL =
+  import.meta.env.VITE_ARC_FALLBACK_RPC_URL || 'https://rpc.testnet.arc.network'
+export const ARC_RPC_URLS = Array.from(
+  new Set([ARC_PRIMARY_RPC_URL, ARC_FALLBACK_RPC_URL].filter(Boolean))
+)
 export const ARC_EXPLORER =
   import.meta.env.VITE_ARC_EXPLORER || 'https://testnet.arcscan.app'
+
+export const arcTransport = fallback(
+  ARC_RPC_URLS.map((url) =>
+    http(url, {
+      retryCount: 3,
+      timeout: 10_000
+    })
+  ),
+  { rank: false }
+)
 
 export const arcTestnet = defineChain({
   id: ARC_CHAIN_ID,
@@ -15,8 +37,8 @@ export const arcTestnet = defineChain({
     decimals: 6
   },
   rpcUrls: {
-    default: { http: [ARC_RPC_URL] },
-    public: { http: [ARC_RPC_URL] }
+    default: { http: ARC_RPC_URLS },
+    public: { http: ARC_RPC_URLS }
   },
   blockExplorers: {
     default: {
@@ -29,7 +51,7 @@ export const arcTestnet = defineChain({
 
 export const arcPublicClient = createPublicClient({
   chain: arcTestnet,
-  transport: http(ARC_RPC_URL)
+  transport: arcTransport
 })
 
 export function txUrl(hash: Hex) {

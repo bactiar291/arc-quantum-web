@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo } from 'react'
 import {
   createWalletClient,
   encodeFunctionData,
-  http,
   parseEventLogs,
   type Address,
   type Hex,
@@ -11,7 +10,7 @@ import {
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts'
 import { useAccount, useWalletClient } from 'wagmi'
 
-import { ARC_CHAIN_ID, ARC_RPC_URL, arcPublicClient, arcTestnet } from '../lib/arc'
+import { ARC_CHAIN_ID, arcPublicClient, arcTestnet, arcTransport } from '../lib/arc'
 import { smartSessionAccountBytecode } from '../lib/bytecode'
 import { smartSessionAccountAbi } from '../lib/contracts'
 import {
@@ -169,7 +168,7 @@ export function useSession() {
       const wallet = createWalletClient({
         account: sessionAccount,
         chain: arcTestnet,
-        transport: http(ARC_RPC_URL)
+        transport: arcTransport
       })
 
       const data = encodeFunctionData({
@@ -214,7 +213,7 @@ export function useSession() {
       const wallet = createWalletClient({
         account: sessionAccount,
         chain: arcTestnet,
-        transport: http(ARC_RPC_URL)
+        transport: arcTransport
       })
       const data = encodeFunctionData({
         abi: smartSessionAccountAbi,
