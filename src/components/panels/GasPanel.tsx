@@ -72,14 +72,14 @@ export function GasPanel() {
             <ShieldCheck className="mb-3 h-7 w-7 text-quantum-green" />
             <div className="font-display text-3xl">APP KIT</div>
             <div className="font-mono text-xs uppercase text-white/55">
-              Official swap / send / bridge
+              Wallet signer execution
             </div>
           </div>
           <div className="border-2 border-white bg-black p-4">
             <KeyRound className="mb-3 h-7 w-7 text-quantum-yellow" />
             <div className="font-display text-3xl">ZERODEV</div>
             <div className="font-mono text-xs uppercase text-white/55">
-              Sponsored AA lane configured
+              Sponsored AA env prepared
             </div>
           </div>
         </div>

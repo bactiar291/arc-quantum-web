@@ -22,9 +22,9 @@ export function StatusBar() {
           </b>
         </span>
         <span>
-          GAS:{' '}
+          GAS ENV:{' '}
           <b className={gasReady ? 'text-quantum-green' : 'text-quantum-yellow'}>
-            {gasReady ? 'SPONSOR ENV' : 'WALLET GAS'}
+            {gasReady ? 'READY' : 'WALLET GAS'}
           </b>
         </span>
         <span>
