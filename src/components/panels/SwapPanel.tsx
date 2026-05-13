@@ -28,6 +28,11 @@ export function SwapPanel() {
   const tokenOut = direction === 'usdcToEurc' ? EURC_TOKEN : USDC_TOKEN
   const disabled = !isSessionActive || !routerAddress || busy
   const swapDisabled = disabled || !amount
+  const statusItems = [
+    { label: 'Session', ready: isSessionActive },
+    { label: 'AMM Router', ready: Boolean(routerAddress) },
+    { label: 'Amount', ready: Boolean(amount) }
+  ]
 
   const run = async (mode: 'approve' | 'swap') => {
     setBusy(true)
@@ -113,6 +118,27 @@ export function SwapPanel() {
           hint="50 = 0.5%"
         />
       </div>
+
+      <div className="mt-4 grid gap-2 font-mono text-[11px] uppercase sm:grid-cols-3">
+        {statusItems.map((item) => (
+          <div
+            key={item.label}
+            className={`border-2 bg-black p-2 ${
+              item.ready
+                ? 'border-quantum-cyan text-quantum-cyan'
+                : 'border-quantum-red text-quantum-red'
+            }`}
+          >
+            {item.ready ? 'OK' : 'WAIT'} / {item.label}
+          </div>
+        ))}
+      </div>
+      {!routerAddress ? (
+        <div className="mt-3 border-2 border-quantum-yellow bg-black p-3 font-mono text-[11px] uppercase leading-5 text-white/70">
+          Run Setup AMM first. On mobile it may be below dashboard. It deploys
+          factory/router once from your connected wallet.
+        </div>
+      ) : null}
 
       <div className="mt-5 grid gap-3 sm:grid-cols-2">
         <Button
