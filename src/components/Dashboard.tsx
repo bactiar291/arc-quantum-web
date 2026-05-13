@@ -42,6 +42,8 @@ export function Dashboard() {
   const txHistory = useAppStore((state) => state.txHistory)
   const addToken = useAppStore((state) => state.addToken)
   const removeToken = useAppStore((state) => state.removeToken)
+  const removeTx = useAppStore((state) => state.removeTx)
+  const clearTxHistory = useAppStore((state) => state.clearTxHistory)
   const { smartAccountAddress } = useSession()
 
   const importToken = () => {
@@ -118,7 +120,17 @@ export function Dashboard() {
         </div>
 
         <div className="space-y-2">
-          <div className="font-display text-2xl">RECENT TX</div>
+          <div className="flex items-center justify-between gap-3">
+            <div className="font-display text-2xl">RECENT TX</div>
+            <Button
+              variant="red"
+              className="min-h-8 px-2 py-1 text-base"
+              onClick={clearTxHistory}
+              disabled={!txHistory.length}
+            >
+              Clear
+            </Button>
+          </div>
           {txHistory.length ? (
             txHistory.slice(0, 8).map((tx) => (
               <div
@@ -127,17 +139,26 @@ export function Dashboard() {
               >
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-white">{tx.summary}</span>
-                  <span
-                    className={
-                      tx.status === 'success'
-                        ? 'text-quantum-green'
-                        : tx.status === 'error'
-                          ? 'text-quantum-red'
-                          : 'text-quantum-yellow'
-                    }
-                  >
-                    {tx.status}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={
+                        tx.status === 'success'
+                          ? 'text-quantum-green'
+                          : tx.status === 'error'
+                            ? 'text-quantum-red'
+                            : 'text-quantum-yellow'
+                      }
+                    >
+                      {tx.status}
+                    </span>
+                    <button
+                      aria-label={`Delete ${tx.summary}`}
+                      className="border-2 border-white bg-quantum-red px-2 py-1 text-white"
+                      onClick={() => removeTx(tx.id)}
+                    >
+                      DEL
+                    </button>
+                  </div>
                 </div>
                 {tx.hash ? (
                   <a

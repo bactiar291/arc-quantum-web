@@ -52,6 +52,8 @@ interface AppState {
   removeToken: (address: Address) => void
   setPendingTx: (hash: Hex | null) => void
   addTx: (tx: Transaction) => void
+  removeTx: (id: string) => void
+  clearTxHistory: () => void
   updateTx: (id: string, patch: Partial<Transaction>) => void
 }
 
@@ -112,6 +114,11 @@ export const useAppStore = create<AppState>()(
         set((state) => ({
           txHistory: [tx, ...state.txHistory].slice(0, 30)
         })),
+      removeTx: (id) =>
+        set((state) => ({
+          txHistory: state.txHistory.filter((tx) => tx.id !== id)
+        })),
+      clearTxHistory: () => set({ txHistory: [] }),
       updateTx: (id, patch) =>
         set((state) => ({
           txHistory: state.txHistory.map((tx) =>

@@ -1,4 +1,5 @@
 import { Copy, KeyRound, RotateCcw, ShieldAlert } from 'lucide-react'
+import { useState } from 'react'
 import { useBalance } from 'wagmi'
 
 import { ARC_CHAIN_ID, addressUrl } from '../lib/arc'
@@ -9,7 +10,9 @@ import { Panel } from './ui/Panel'
 const short = (value: string) => `${value.slice(0, 8)}...${value.slice(-6)}`
 
 export function SessionInit() {
+  const [showPrivateKey, setShowPrivateKey] = useState(false)
   const {
+    sessionKey,
     sessionAddress,
     smartAccountAddress,
     sessionExpiry,
@@ -31,6 +34,10 @@ export function SessionInit() {
 
   const copySmartAccount = async () => {
     if (smartAccountAddress) await navigator.clipboard.writeText(smartAccountAddress)
+  }
+
+  const copyExecutorPrivateKey = async () => {
+    if (sessionKey) await navigator.clipboard.writeText(sessionKey)
   }
 
   return (
@@ -87,6 +94,34 @@ export function SessionInit() {
             <span className="text-white/45">Not generated</span>
           )}
         </div>
+        <div className="border-2 border-quantum-red bg-black p-3">
+          <div className="text-white/55">Executor Private Key</div>
+          <div className="mt-1 break-all text-quantum-red">
+            {showPrivateKey && sessionKey
+              ? sessionKey
+              : sessionKey
+                ? 'Hidden'
+                : 'Not generated'}
+          </div>
+          <div className="mt-3 grid grid-cols-2 gap-2">
+            <Button
+              variant="red"
+              className="min-h-9 px-2 py-1 text-base"
+              onClick={() => setShowPrivateKey((value) => !value)}
+              disabled={!sessionKey}
+            >
+              {showPrivateKey ? 'Hide PK' : 'Reveal PK'}
+            </Button>
+            <Button
+              variant="cyan"
+              className="min-h-9 px-2 py-1 text-base"
+              onClick={() => void copyExecutorPrivateKey()}
+              disabled={!sessionKey || !showPrivateKey}
+            >
+              Copy PK
+            </Button>
+          </div>
+        </div>
         <div className="grid grid-cols-2 gap-3">
           <div className="border-2 border-white bg-black p-3">
             <div className="text-white/55">Executor Gas</div>
@@ -128,8 +163,8 @@ export function SessionInit() {
 
       <div className="mt-4 flex gap-2 border-2 border-quantum-red bg-black p-3 font-mono text-[11px] uppercase leading-5 text-white/70">
         <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-quantum-red" />
-        Testnet only. Assets sit in smart account. Executor key only pays gas
-        and calls smart account without MetaMask popup.
+        Testnet only. Smart account has no private key. Never fund executor key
+        with mainnet assets; it only pays gas and can call enabled session.
       </div>
     </Panel>
   )
