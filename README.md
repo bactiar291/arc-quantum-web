@@ -35,6 +35,16 @@ owner and can revoke the session. The session key still needs enough native gas
 to submit transactions to the smart account because this app has no backend
 relayer/paymaster. Use testnet funds only.
 
+## Default Tokens
+
+Dashboard and token selectors auto-load Arc testnet USDC and EURC:
+
+- USDC: `0x3600000000000000000000000000000000000000`
+- EURC: `0x89B50855Aa3bE2F677cD6303Cec089B5F319D72a`
+
+Swap is simplified to a fixed USDC/EURC pair with a direction switch, so users
+do not need to import tokens or choose token-in/token-out manually.
+
 ## Contracts
 
 Contracts live in `contracts/src`:

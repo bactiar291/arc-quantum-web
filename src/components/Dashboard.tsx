@@ -6,6 +6,7 @@ import { useReadContract } from 'wagmi'
 import { ARC_CHAIN_ID, txUrl } from '../lib/arc'
 import { erc20Abi } from '../lib/contracts'
 import { useSession } from '../hooks/useSession'
+import { DEFAULT_TOKEN_ADDRESSES, mergeTokens } from '../lib/tokens'
 import { useAppStore, type Token } from '../store/useAppStore'
 import { Button } from './ui/Button'
 import { Input } from './ui/Input'
@@ -38,7 +39,8 @@ export function Dashboard() {
   const [address, setAddress] = useState('')
   const [symbol, setSymbol] = useState('')
   const [decimals, setDecimals] = useState(18)
-  const tokens = useAppStore((state) => state.deployedTokens)
+  const customTokens = useAppStore((state) => state.deployedTokens)
+  const tokens = mergeTokens(customTokens)
   const txHistory = useAppStore((state) => state.txHistory)
   const addToken = useAppStore((state) => state.addToken)
   const removeToken = useAppStore((state) => state.removeToken)
@@ -103,13 +105,19 @@ export function Dashboard() {
             tokens.map((token) => (
               <div key={token.address} className="grid grid-cols-[1fr_auto] gap-2">
                 <TokenBalance token={token} owner={smartAccountAddress ?? undefined} />
-                <button
-                  aria-label={`Remove ${token.symbol}`}
-                  className="grid w-11 place-items-center border-2 border-white bg-quantum-red text-white shadow-[3px_3px_0_#FFE500]"
-                  onClick={() => removeToken(token.address)}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </button>
+                {DEFAULT_TOKEN_ADDRESSES.has(token.address.toLowerCase()) ? (
+                  <div className="grid w-11 place-items-center border-2 border-white bg-black font-mono text-[10px] text-quantum-cyan shadow-[3px_3px_0_#FFE500]">
+                    DEF
+                  </div>
+                ) : (
+                  <button
+                    aria-label={`Remove ${token.symbol}`}
+                    className="grid w-11 place-items-center border-2 border-white bg-quantum-red text-white shadow-[3px_3px_0_#FFE500]"
+                    onClick={() => removeToken(token.address)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                )}
               </div>
             ))
           ) : (

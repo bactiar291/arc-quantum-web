@@ -1,22 +1,20 @@
-import { CircleDollarSign, ShieldCheck, Shuffle } from 'lucide-react'
-import { useMemo, useState } from 'react'
-import type { Address, Hex } from 'viem'
+import { ArrowLeftRight, CircleDollarSign, ShieldCheck, Shuffle } from 'lucide-react'
+import { useState } from 'react'
+import type { Hex } from 'viem'
 
 import { quantumRouterAddress } from '../../lib/contracts'
-import { findToken } from '../../lib/tokens'
+import { EURC_TOKEN, USDC_TOKEN } from '../../lib/tokens'
 import { useSession } from '../../hooks/useSession'
 import { useSwap } from '../../hooks/useSwap'
-import { useAppStore } from '../../store/useAppStore'
 import { Button } from '../ui/Button'
 import { Input } from '../ui/Input'
 import { Panel } from '../ui/Panel'
-import { TokenSelect } from '../ui/TokenSelect'
 import { TxStatus } from '../ui/TxStatus'
 
+type SwapDirection = 'usdcToEurc' | 'eurcToUsdc'
+
 export function SwapPanel() {
-  const tokens = useAppStore((state) => state.deployedTokens)
-  const [tokenIn, setTokenIn] = useState<Address | ''>('')
-  const [tokenOut, setTokenOut] = useState<Address | ''>('')
+  const [direction, setDirection] = useState<SwapDirection>('usdcToEurc')
   const [amount, setAmount] = useState('')
   const [slippage, setSlippage] = useState(50)
   const [busy, setBusy] = useState(false)
@@ -25,9 +23,10 @@ export function SwapPanel() {
   const { isSessionActive } = useSession()
   const { approveRouter, executeSwap } = useSwap()
 
-  const inputToken = useMemo(() => findToken(tokens, tokenIn), [tokens, tokenIn])
-  const disabled =
-    !isSessionActive || !quantumRouterAddress || !inputToken || !tokenOut || busy
+  const tokenIn = direction === 'usdcToEurc' ? USDC_TOKEN : EURC_TOKEN
+  const tokenOut = direction === 'usdcToEurc' ? EURC_TOKEN : USDC_TOKEN
+  const disabled = !isSessionActive || !quantumRouterAddress || busy
+  const swapDisabled = disabled || !amount
 
   const run = async (mode: 'approve' | 'swap') => {
     setBusy(true)
@@ -36,12 +35,12 @@ export function SwapPanel() {
     try {
       const result =
         mode === 'approve'
-          ? await approveRouter(tokenIn as Address)
+          ? await approveRouter(tokenIn.address)
           : await executeSwap({
-              tokenIn: tokenIn as Address,
-              tokenOut: tokenOut as Address,
+              tokenIn: tokenIn.address,
+              tokenOut: tokenOut.address,
               amount,
-              decimals: inputToken?.decimals ?? 18,
+              decimals: tokenIn.decimals,
               slippageBps: slippage
             })
       setHash(result.hash)
@@ -59,11 +58,44 @@ export function SwapPanel() {
         QUANTUM SWAP
       </div>
 
+      <div className="mb-4 border-2 border-white bg-black p-4 shadow-[4px_4px_0_#00FFE5]">
+        <div className="font-display text-2xl text-quantum-yellow">
+          FIXED ARC PAIR
+        </div>
+        <div className="mt-2 grid gap-3 md:grid-cols-[1fr_auto_1fr] md:items-center">
+          <div className="border-2 border-white p-3">
+            <div className="font-display text-3xl">{tokenIn.symbol}</div>
+            <div className="truncate font-mono text-xs text-white/50">
+              {tokenIn.address}
+            </div>
+          </div>
+          <Button
+            variant="cyan"
+            className="w-full md:w-14"
+            onClick={() =>
+              setDirection((current) =>
+                current === 'usdcToEurc' ? 'eurcToUsdc' : 'usdcToEurc'
+              )
+            }
+          >
+            <ArrowLeftRight className="h-5 w-5" />
+          </Button>
+          <div className="border-2 border-white p-3">
+            <div className="font-display text-3xl">{tokenOut.symbol}</div>
+            <div className="truncate font-mono text-xs text-white/50">
+              {tokenOut.address}
+            </div>
+          </div>
+        </div>
+        <div className="mt-3 font-mono text-xs uppercase text-white/60">
+          Fund smart account with {tokenIn.symbol}. Output returns to smart
+          account.
+        </div>
+      </div>
+
       <div className="grid gap-4 md:grid-cols-2">
-        <TokenSelect label="Token In" value={tokenIn} onChange={setTokenIn} />
-        <TokenSelect label="Token Out" value={tokenOut} onChange={setTokenOut} />
         <Input
-          label="Amount In"
+          label={`${tokenIn.symbol} Amount`}
           value={amount}
           onChange={(event) => setAmount(event.target.value)}
           placeholder="0.0"
@@ -83,13 +115,13 @@ export function SwapPanel() {
       <div className="mt-5 grid gap-3 sm:grid-cols-2">
         <Button
           variant="cyan"
-          disabled={!isSessionActive || !quantumRouterAddress || !tokenIn || busy}
+          disabled={disabled}
           onClick={() => void run('approve')}
         >
           <ShieldCheck className="h-5 w-5" />
           Approve Max
         </Button>
-        <Button disabled={disabled} onClick={() => void run('swap')}>
+        <Button disabled={swapDisabled} onClick={() => void run('swap')}>
           <CircleDollarSign className="h-5 w-5" />
           Quantum Swap
         </Button>

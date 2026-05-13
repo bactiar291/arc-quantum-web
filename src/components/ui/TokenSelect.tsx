@@ -1,5 +1,6 @@
 import type { Address } from 'viem'
 
+import { mergeTokens } from '../../lib/tokens'
 import { useAppStore } from '../../store/useAppStore'
 
 interface TokenSelectProps {
@@ -9,7 +10,7 @@ interface TokenSelectProps {
 }
 
 export function TokenSelect({ label, value, onChange }: TokenSelectProps) {
-  const tokens = useAppStore((state) => state.deployedTokens)
+  const tokens = mergeTokens(useAppStore((state) => state.deployedTokens))
 
   return (
     <label className="block">
