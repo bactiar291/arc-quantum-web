@@ -11,6 +11,7 @@ import { LiquidityPanel } from './components/panels/LiquidityPanel'
 import { SendPanel } from './components/panels/SendPanel'
 import { SwapPanel } from './components/panels/SwapPanel'
 import { Panel } from './components/ui/Panel'
+import { quantumFactoryAddress, quantumRouterAddress } from './lib/contracts'
 import { useAppStore, type AppTab } from './store/useAppStore'
 
 const tabIcons: Record<AppTab, typeof Shuffle> = {
@@ -77,9 +78,18 @@ export default function App() {
               ROUTER
             </div>
             <p className="mt-3 font-mono text-xs uppercase leading-5 text-white/70">
-              Set router/factory env after contract deploy. Current frontend
-              blocks swap/liquidity when address is empty to avoid blind tx.
+              {quantumRouterAddress && quantumFactoryAddress
+                ? 'Router/factory configured. Swap still needs pool liquidity and smart-account token balance.'
+                : 'Router/factory missing. Swap/liquidity are blocked until AMM contracts are deployed and env is set.'}
             </p>
+            <div className="mt-3 space-y-2 font-mono text-[11px] uppercase">
+              <div className="truncate text-quantum-yellow">
+                Router: {quantumRouterAddress ?? 'missing'}
+              </div>
+              <div className="truncate text-quantum-cyan">
+                Factory: {quantumFactoryAddress ?? 'missing'}
+              </div>
+            </div>
           </Panel>
         </aside>
       </main>

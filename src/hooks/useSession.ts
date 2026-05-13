@@ -36,6 +36,15 @@ interface SessionTxResult {
 
 const oneDaySeconds = 24 * 60 * 60
 
+const requireExecutorGas = async (executor: Address) => {
+  const balance = await arcPublicClient.getBalance({ address: executor })
+  if (balance === 0n) {
+    throw new Error(
+      'Executor gas is 0. Send Arc native USDC gas to the executor key, then retry. ERC20 USDC token balance is not gas.'
+    )
+  }
+}
+
 export function useSession() {
   const { address, isConnected } = useAccount()
   const { data: walletClient } = useWalletClient({ chainId: ARC_CHAIN_ID })
@@ -168,6 +177,8 @@ export function useSession() {
         args: [request.to, request.value ?? 0n, request.data ?? '0x']
       })
 
+      await requireExecutorGas(sessionAccount.address)
+
       const gas = await arcPublicClient.estimateGas({
         account: sessionAccount.address,
         to: smartAccountAddress,
@@ -209,6 +220,8 @@ export function useSession() {
         functionName: 'deploy',
         args: [initCode, value]
       })
+      await requireExecutorGas(sessionAccount.address)
+
       const gas = await arcPublicClient.estimateGas({
         account: sessionAccount.address,
         to: smartAccountAddress,

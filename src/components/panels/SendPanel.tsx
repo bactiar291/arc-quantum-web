@@ -4,7 +4,7 @@ import { isAddress, type Address, type Hex } from 'viem'
 
 import { useSend, randomAddress } from '../../hooks/useSend'
 import { useSession } from '../../hooks/useSession'
-import { findToken } from '../../lib/tokens'
+import { findToken, mergeTokens } from '../../lib/tokens'
 import { useAppStore } from '../../store/useAppStore'
 import { Button } from '../ui/Button'
 import { Input } from '../ui/Input'
@@ -13,7 +13,7 @@ import { TokenSelect } from '../ui/TokenSelect'
 import { TxStatus } from '../ui/TxStatus'
 
 export function SendPanel() {
-  const tokens = useAppStore((state) => state.deployedTokens)
+  const tokens = mergeTokens(useAppStore((state) => state.deployedTokens))
   const [token, setToken] = useState<Address | ''>('')
   const [amount, setAmount] = useState('')
   const [recipient, setRecipient] = useState('')

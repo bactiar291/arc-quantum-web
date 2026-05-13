@@ -49,7 +49,7 @@ export function SessionInit() {
             SMART SESSION
           </div>
           <p className="mt-1 font-mono text-[11px] uppercase text-white/65">
-            Owner deploys smart account, then session key executes it.
+            Owner controls assets; gas payer key sends automated tx.
           </p>
         </div>
         <div
@@ -65,7 +65,7 @@ export function SessionInit() {
 
       <div className="mt-4 space-y-3 font-mono text-xs uppercase">
         <div className="border-2 border-quantum-cyan bg-black p-3">
-          <div className="text-white/55">Smart Account</div>
+          <div className="text-white/55">Smart Wallet / Assets</div>
           {smartAccountAddress ? (
             <a
               href={addressUrl(smartAccountAddress)}
@@ -80,7 +80,7 @@ export function SessionInit() {
           )}
         </div>
         <div className="border-2 border-white bg-black p-3">
-          <div className="text-white/55">Executor Key</div>
+          <div className="text-white/55">Gas Payer / Executor</div>
           {sessionAddress ? (
             <a
               href={addressUrl(sessionAddress)}
@@ -95,7 +95,7 @@ export function SessionInit() {
           )}
         </div>
         <div className="border-2 border-quantum-red bg-black p-3">
-          <div className="text-white/55">Executor Private Key</div>
+          <div className="text-white/55">Gas Payer Private Key</div>
           <div className="mt-1 break-all text-quantum-red">
             {showPrivateKey && sessionKey
               ? sessionKey
@@ -124,7 +124,7 @@ export function SessionInit() {
         </div>
         <div className="grid grid-cols-2 gap-3">
           <div className="border-2 border-white bg-black p-3">
-            <div className="text-white/55">Executor Gas</div>
+            <div className="text-white/55">Gas Payer Balance</div>
             <div className="text-quantum-yellow">
               {executorBalance
                 ? `${executorBalance.formatted} ${executorBalance.symbol}`
@@ -132,7 +132,7 @@ export function SessionInit() {
             </div>
           </div>
           <div className="border-2 border-white bg-black p-3">
-            <div className="text-white/55">Smart Gas</div>
+            <div className="text-white/55">Smart Native Balance</div>
             <div className="text-quantum-cyan">
               {smartBalance ? `${smartBalance.formatted} ${smartBalance.symbol}` : '0'}
             </div>

@@ -1,22 +1,17 @@
 import { Boxes, ShieldCheck } from 'lucide-react'
-import { useMemo, useState } from 'react'
-import type { Address, Hex } from 'viem'
+import { useState } from 'react'
+import type { Hex } from 'viem'
 
 import { quantumRouterAddress } from '../../lib/contracts'
-import { findToken } from '../../lib/tokens'
+import { EURC_TOKEN, USDC_TOKEN } from '../../lib/tokens'
 import { useLiquidity } from '../../hooks/useLiquidity'
 import { useSession } from '../../hooks/useSession'
-import { useAppStore } from '../../store/useAppStore'
 import { Button } from '../ui/Button'
 import { Input } from '../ui/Input'
 import { Panel } from '../ui/Panel'
-import { TokenSelect } from '../ui/TokenSelect'
 import { TxStatus } from '../ui/TxStatus'
 
 export function LiquidityPanel() {
-  const tokens = useAppStore((state) => state.deployedTokens)
-  const [tokenA, setTokenA] = useState<Address | ''>('')
-  const [tokenB, setTokenB] = useState<Address | ''>('')
   const [amountA, setAmountA] = useState('')
   const [amountB, setAmountB] = useState('')
   const [busy, setBusy] = useState(false)
@@ -25,22 +20,17 @@ export function LiquidityPanel() {
   const { isSessionActive } = useSession()
   const { approveRouter, addLiquidity } = useLiquidity()
 
-  const selectedA = useMemo(() => findToken(tokens, tokenA), [tokens, tokenA])
-  const selectedB = useMemo(() => findToken(tokens, tokenB), [tokens, tokenB])
-  const disabled =
-    !isSessionActive ||
-    !quantumRouterAddress ||
-    !selectedA ||
-    !selectedB ||
-    tokenA === tokenB ||
-    busy
+  const tokenA = USDC_TOKEN
+  const tokenB = EURC_TOKEN
+  const disabled = !isSessionActive || !quantumRouterAddress || busy
+  const liquidityDisabled = disabled || !amountA || !amountB
 
-  const runApprove = async (token: Address | '') => {
+  const runApprove = async (token: typeof USDC_TOKEN) => {
     setBusy(true)
     setError('')
     setHash(undefined)
     try {
-      const result = await approveRouter(token as Address)
+      const result = await approveRouter(token.address)
       setHash(result.hash)
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : String(caught))
@@ -55,12 +45,12 @@ export function LiquidityPanel() {
     setHash(undefined)
     try {
       const result = await addLiquidity({
-        tokenA: tokenA as Address,
-        tokenB: tokenB as Address,
+        tokenA: tokenA.address,
+        tokenB: tokenB.address,
         amountA,
         amountB,
-        decimalsA: selectedA?.decimals ?? 18,
-        decimalsB: selectedB?.decimals ?? 18
+        decimalsA: tokenA.decimals,
+        decimalsB: tokenB.decimals
       })
       setHash(result.hash)
     } catch (caught) {
@@ -77,18 +67,32 @@ export function LiquidityPanel() {
         ADD LIQUIDITY
       </div>
 
+      <div className="mb-4 border-2 border-white bg-black p-4 shadow-[4px_4px_0_#00FFE5]">
+        <div className="font-display text-2xl text-quantum-cyan">
+          FIXED ARC POOL
+        </div>
+        <div className="mt-2 grid gap-3 md:grid-cols-2">
+          {[tokenA, tokenB].map((token) => (
+            <div key={token.address} className="border-2 border-white p-3">
+              <div className="font-display text-3xl">{token.symbol}</div>
+              <div className="truncate font-mono text-xs text-white/50">
+                {token.address}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
       <div className="grid gap-4 md:grid-cols-2">
-        <TokenSelect label="Token A" value={tokenA} onChange={setTokenA} />
-        <TokenSelect label="Token B" value={tokenB} onChange={setTokenB} />
         <Input
-          label="Amount A"
+          label={`${tokenA.symbol} Amount`}
           value={amountA}
           onChange={(event) => setAmountA(event.target.value)}
           inputMode="decimal"
           placeholder="0.0"
         />
         <Input
-          label="Amount B"
+          label={`${tokenB.symbol} Amount`}
           value={amountB}
           onChange={(event) => setAmountB(event.target.value)}
           inputMode="decimal"
@@ -99,7 +103,7 @@ export function LiquidityPanel() {
       <div className="mt-5 grid gap-3 sm:grid-cols-3">
         <Button
           variant="cyan"
-          disabled={!isSessionActive || !quantumRouterAddress || !tokenA || busy}
+          disabled={disabled}
           onClick={() => void runApprove(tokenA)}
         >
           <ShieldCheck className="h-5 w-5" />
@@ -107,13 +111,13 @@ export function LiquidityPanel() {
         </Button>
         <Button
           variant="cyan"
-          disabled={!isSessionActive || !quantumRouterAddress || !tokenB || busy}
+          disabled={disabled}
           onClick={() => void runApprove(tokenB)}
         >
           <ShieldCheck className="h-5 w-5" />
           Approve B
         </Button>
-        <Button disabled={disabled} onClick={() => void runLiquidity()}>
+        <Button disabled={liquidityDisabled} onClick={() => void runLiquidity()}>
           <Boxes className="h-5 w-5" />
           Add Liquidity
         </Button>
