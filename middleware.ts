@@ -3,7 +3,7 @@ const MAX_REQUESTS = 30
 
 const store = new Map<string, { count: number; reset: number }>()
 
-export function middleware(request: Request) {
+export default function middleware(request: Request) {
   const url = new URL(request.url)
   if (!url.pathname.startsWith('/api/')) return undefined
 
