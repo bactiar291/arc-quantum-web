@@ -1,6 +1,7 @@
 /* eslint-disable react-refresh/only-export-components */
 import {
   AppKit,
+  Blockchain,
   BridgeChain,
   getErrorMessage,
   SwapChain,
@@ -62,6 +63,8 @@ type StableToken = 'USDC' | 'EURC'
 type SwapDirection = 'USDC_TO_EURC' | 'EURC_TO_USDC'
 type BridgeDirection = 'SEPOLIA_TO_ARC' | 'ARC_TO_SEPOLIA'
 type BridgeEstimate = Awaited<ReturnType<AppKit['estimateBridge']>>
+
+const txHashPattern = /0x[a-fA-F0-9]{64}/
 
 interface SwapRequest {
   amount: string
@@ -171,11 +174,75 @@ function normalizeError(error: unknown) {
   return message
 }
 
+function txHashFromError(error: unknown) {
+  const message = error instanceof Error ? error.message : String(error)
+  const match = message.match(txHashPattern)
+  return match?.[0] as Hex | undefined
+}
+
+function isTxConfirmationTimeout(error: unknown) {
+  const message = error instanceof Error ? error.message : String(error)
+  return /Timed out while waiting for transaction|wait.*transaction.*confirm|transaction.*confirm/i.test(
+    message
+  )
+}
+
 function swapTokens(direction: SwapDirection) {
   if (direction === 'USDC_TO_EURC') {
     return { tokenIn: 'USDC', tokenOut: 'EURC' } as const
   }
   return { tokenIn: 'EURC', tokenOut: 'USDC' } as const
+}
+
+function pendingSwapResult({
+  account,
+  amount,
+  hash,
+  tokenIn,
+  tokenOut,
+  slippageBps
+}: {
+  account: Address | null
+  amount: string
+  hash: Hex
+  tokenIn: StableToken
+  tokenOut: StableToken
+  slippageBps: number
+}): SwapResult & { pending: true } {
+  return {
+    amountIn: amount,
+    chain: Blockchain.Arc_Testnet,
+    config: { slippageBps },
+    fromAddress: account ?? '',
+    toAddress: account ?? '',
+    tokenIn,
+    tokenOut,
+    pending: true,
+    txHash: hash,
+    explorerUrl: `${ARC_EXPLORER}/tx/${hash}`
+  } as SwapResult & { pending: true }
+}
+
+function preferFastPendingTransactionWait(adapter: ViemAdapter) {
+  const candidate = adapter as ViemAdapter & {
+    __arcFastPendingWait?: boolean
+  }
+  if (candidate.__arcFastPendingWait || typeof candidate.waitForTransaction !== 'function') {
+    return adapter
+  }
+  const original = candidate.waitForTransaction.bind(candidate)
+  candidate.waitForTransaction = ((txHash, config, chain) =>
+    original(
+      txHash,
+      {
+        confirmations: 1,
+        timeout: 45_000,
+        ...config
+      },
+      chain
+    )) as ViemAdapter['waitForTransaction']
+  candidate.__arcFastPendingWait = true
+  return adapter
 }
 
 function txHashFromStep(step: BridgeStep) {
@@ -470,7 +537,7 @@ export function ArcKitProvider({ children }: { children: ReactNode }) {
       : await authorizedAccount(provider)
     const address = providerAddress ?? privy.account
     if (!address) throw new Error('Wallet belum connected.')
-    const nextAdapter = await createViemAdapterFromProvider({
+    const nextAdapter = preferFastPendingTransactionWait(await createViemAdapterFromProvider({
       provider,
       capabilities: { addressContext: 'user-controlled' },
       getPublicClient: ({ chain }) =>
@@ -481,7 +548,7 @@ export function ArcKitProvider({ children }: { children: ReactNode }) {
               ? arcTransport
               : http(SEPOLIA_RPC_URL, { retryCount: 3, timeout: 10_000 })
         })
-    })
+    }))
     setAdapter(nextAdapter)
     setAccount(address)
     setWallet(address, true)
@@ -679,25 +746,43 @@ export function ArcKitProvider({ children }: { children: ReactNode }) {
       const { tokenIn, tokenOut } = swapTokens(request.direction)
       const tracked = await track('swap', `Swap ${tokenIn} to ${tokenOut}`, async () => {
         const activeAdapter = await readyAdapter()
-        const result = await kit.swap({
-          from: { adapter: activeAdapter, chain: SwapChain.Arc_Testnet },
-          tokenIn,
-          tokenOut,
-          amountIn: request.amount,
-          config: {
-            kitKey: CIRCLE_KIT_KEY,
-            slippageBps: request.slippageBps
+        try {
+          const result = await kit.swap({
+            from: { adapter: activeAdapter, chain: SwapChain.Arc_Testnet },
+            tokenIn,
+            tokenOut,
+            amountIn: request.amount,
+            config: {
+              kitKey: CIRCLE_KIT_KEY,
+              slippageBps: request.slippageBps
+            }
+          } satisfies SwapParams)
+          return {
+            hash: result.txHash.startsWith('0x') ? (result.txHash as Hex) : undefined,
+            value: result
           }
-        } satisfies SwapParams)
-        return {
-          hash: result.txHash.startsWith('0x') ? (result.txHash as Hex) : undefined,
-          value: result
+        } catch (error) {
+          const hash = txHashFromError(error)
+          if (!hash || !isTxConfirmationTimeout(error)) throw error
+          return {
+            hash,
+            status: 'pending' as const,
+            error: 'Tx submitted. Arc RPC confirmation is still pending; do not resend yet.',
+            value: pendingSwapResult({
+              account,
+              amount: request.amount,
+              hash,
+              tokenIn,
+              tokenOut,
+              slippageBps: request.slippageBps
+            })
+          }
         }
       })
       if (!tracked.value) throw new Error('Swap result kosong.')
       return tracked.value
     },
-    [ensureCircleProxyAuth, kit, readyAdapter, track]
+    [account, ensureCircleProxyAuth, kit, readyAdapter, track]
   )
 
   const sendToken = useCallback(

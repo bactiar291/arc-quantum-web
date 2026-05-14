@@ -21,6 +21,7 @@ export function OfficialSwapPanel() {
   const [quote, setQuote] = useState('')
   const [hash, setHash] = useState('')
   const [error, setError] = useState('')
+  const [notice, setNotice] = useState('')
   const [quoteBusy, setQuoteBusy] = useState(false)
   const [swapBusy, setSwapBusy] = useState(false)
   const quoteRequest = useRef(0)
@@ -65,6 +66,7 @@ export function OfficialSwapPanel() {
     setAmount(formatUnits(nextValue, tokenIn.decimals))
     setHash('')
     setError('')
+    setNotice('')
   }
 
   const flip = () => {
@@ -74,6 +76,7 @@ export function OfficialSwapPanel() {
     setQuote('REFRESHING QUOTE...')
     setHash('')
     setError('')
+    setNotice('')
   }
 
   const runQuote = useCallback(async () => {
@@ -123,9 +126,13 @@ export function OfficialSwapPanel() {
     setSwapBusy(true)
     setHash('')
     setError('')
+    setNotice('')
     try {
       const result = await executeSwap({ amount: trimmedAmount, direction, slippageBps })
       setHash(result.txHash)
+      if ((result as { pending?: boolean }).pending) {
+        setNotice('TX SUBMITTED. ARC CONFIRMATION STILL PENDING; DO NOT RESEND.')
+      }
       if (result.amountOut) setQuote(`${result.amountOut} ${result.tokenOut}`)
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : String(caught))
@@ -169,7 +176,10 @@ export function OfficialSwapPanel() {
               className="min-h-0 flex-1 border-0 bg-transparent p-0 text-xl font-bold shadow-none focus:bg-transparent focus:shadow-none"
               inputMode="decimal"
               value={amount}
-              onChange={(event) => setAmount(event.target.value)}
+              onChange={(event) => {
+                setAmount(event.target.value)
+                setNotice('')
+              }}
             />
             <div className="flex items-center gap-2 border-2 border-quantum-black bg-quantum-yellow px-3 py-1.5">
               <span className="font-display text-base">{tokenIn.symbol}</span>
@@ -270,7 +280,12 @@ export function OfficialSwapPanel() {
 
         {hash ? (
           <div className="mt-3 break-all rounded border-2 border-quantum-green bg-quantum-green/20 p-2 font-mono text-xs">
-            OK {hash}
+            {notice ? 'PENDING' : 'OK'} {hash}
+          </div>
+        ) : null}
+        {notice ? (
+          <div className="mt-3 rounded border-2 border-quantum-yellow bg-quantum-yellow/20 p-2 font-mono text-xs text-quantum-black">
+            {notice}
           </div>
         ) : null}
         {error ? (

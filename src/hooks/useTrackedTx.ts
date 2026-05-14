@@ -1,6 +1,6 @@
 import type { Hex } from 'viem'
 
-import { createTx, useAppStore, type TxKind } from '../store/useAppStore'
+import { createTx, useAppStore, type TxKind, type TxStatus } from '../store/useAppStore'
 
 export function useTrackedTx() {
   const addTx = useAppStore((state) => state.addTx)
@@ -10,7 +10,7 @@ export function useTrackedTx() {
   return async function track<T>(
     kind: TxKind,
     summary: string,
-    action: () => Promise<{ hash?: Hex; value?: T }>
+    action: () => Promise<{ hash?: Hex; value?: T; status?: TxStatus; error?: string }>
   ) {
     const tx = createTx(kind, summary)
     addTx(tx)
@@ -19,7 +19,8 @@ export function useTrackedTx() {
       if (result.hash) setPendingTx(result.hash)
       updateTx(tx.id, {
         hash: result.hash,
-        status: 'success'
+        status: result.status ?? 'success',
+        error: result.error
       })
       setPendingTx(null)
       return result
