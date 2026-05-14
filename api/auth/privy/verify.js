@@ -2,6 +2,8 @@
 
 import { PrivyClient } from '@privy-io/node'
 
+import { applyRateLimit } from '../../_rateLimit.js'
+
 let privyClient
 
 function getPrivyClient() {
@@ -18,6 +20,7 @@ function getPrivyClient() {
 
 export default async function handler(request, response) {
   response.setHeader('cache-control', 'no-store')
+  if (applyRateLimit(request, response)) return
 
   if (!['GET', 'POST'].includes(request.method)) {
     response.setHeader('allow', 'GET, POST')

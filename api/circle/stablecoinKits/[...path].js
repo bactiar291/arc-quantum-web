@@ -2,6 +2,8 @@
 
 import { PrivyClient } from '@privy-io/node'
 
+import { applyRateLimit } from '../../_rateLimit.js'
+
 const TARGET = 'https://api.circle.com/v1/stablecoinKits'
 const PREFIX = '/api/circle/stablecoinKits/'
 let privyClient
@@ -20,6 +22,7 @@ function getPrivyClient() {
 
 export default async function handler(request, response) {
   response.setHeader('cache-control', 'no-store')
+  if (applyRateLimit(request, response)) return
 
   const authHeader = Array.isArray(request.headers.authorization)
     ? request.headers.authorization[0]
