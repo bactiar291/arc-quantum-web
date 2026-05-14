@@ -182,7 +182,7 @@ export function Dashboard() {
     : 'not issued'
 
   return (
-    <Panel className="animate-reveal">
+    <Panel className="dashboard-panel animate-reveal">
       <div className="flex items-center gap-2 border-b-4 border-quantum-black pb-3 font-display text-3xl">
         <WalletCards className="h-6 w-6 text-quantum-yellow" />
         ARC WALLET

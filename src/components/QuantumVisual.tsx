@@ -2,9 +2,9 @@ import { Panel } from './ui/Panel'
 
 export function QuantumVisual() {
   return (
-    <Panel className="min-h-[360px] animate-reveal overflow-hidden bg-quantum-yellow" shadow="red">
+    <Panel className="min-h-[300px] animate-reveal overflow-hidden bg-quantum-yellow" shadow="red">
       <div className="scanline" />
-      <div className="relative z-10 flex h-full min-h-[320px] flex-col justify-between">
+      <div className="relative z-10 flex h-full min-h-[260px] flex-col justify-between">
         <div>
           <div className="font-display text-5xl leading-none text-quantum-ink">
             ARC PAINT CORE

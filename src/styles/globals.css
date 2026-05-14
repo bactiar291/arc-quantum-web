@@ -440,6 +440,148 @@ select {
   animation-delay: var(--route-delay, 0ms);
 }
 
+.dashboard-panel {
+  scrollbar-color: var(--cyan) var(--ink);
+  scrollbar-width: thin;
+}
+
+.dashboard-panel::-webkit-scrollbar {
+  width: 12px;
+}
+
+.dashboard-panel::-webkit-scrollbar-track {
+  background: var(--ink);
+}
+
+.dashboard-panel::-webkit-scrollbar-thumb {
+  border: 3px solid var(--ink);
+  background: var(--cyan);
+}
+
+.signal-rail {
+  min-height: 390px;
+}
+
+.signal-rail-grid {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(120deg, rgba(0, 229, 255, 0.22), transparent 38%),
+    linear-gradient(260deg, rgba(255, 77, 141, 0.2), transparent 44%),
+    radial-gradient(circle at 72% 38%, rgba(255, 214, 10, 0.26), transparent 26%),
+    #111111;
+}
+
+.signal-rail-grid::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.12) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.12) 1px, transparent 1px);
+  background-size: 26px 26px;
+  animation: reactor-grid 9s linear infinite;
+}
+
+.signal-ring {
+  position: relative;
+  height: 132px;
+  border: 4px solid #ffffff;
+  background:
+    conic-gradient(from 0deg, var(--cyan), var(--yellow), var(--pink), var(--green), var(--cyan));
+  box-shadow: 6px 6px 0 #ffffff;
+  overflow: hidden;
+}
+
+.signal-ring::before {
+  content: '';
+  position: absolute;
+  inset: 22px;
+  border: 4px solid var(--ink);
+  background: #ffffff;
+  box-shadow: inset 0 0 0 10px var(--yellow);
+  animation: signal-core 4s var(--ease) infinite alternate;
+}
+
+.signal-ring span,
+.signal-ring i,
+.signal-ring b {
+  position: absolute;
+  inset: 50%;
+  width: 116px;
+  height: 10px;
+  margin: -5px 0 0 -58px;
+  border: 3px solid var(--ink);
+  background: var(--cyan);
+  animation: rail-orbit 3.8s linear infinite;
+}
+
+.signal-ring i {
+  background: var(--pink);
+  animation-delay: -1.2s;
+}
+
+.signal-ring b {
+  background: var(--yellow);
+  animation-delay: -2.4s;
+}
+
+.signal-lane {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  overflow: hidden;
+  border: 4px solid #ffffff;
+  background: rgba(255, 255, 255, 0.08);
+  padding: 8px;
+  box-shadow: 4px 4px 0 #ffffff;
+}
+
+.signal-lane::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.22), transparent);
+  transform: translateX(-110%);
+  animation: signal-sweep 3.2s linear infinite;
+  animation-delay: var(--lane-delay, 0ms);
+}
+
+.signal-lane-live {
+  background: rgba(255, 214, 10, 0.28);
+}
+
+.signal-meter {
+  display: grid;
+  grid-template-columns: auto repeat(4, 1fr);
+  align-items: center;
+  gap: 8px;
+}
+
+.signal-meter span {
+  height: 22px;
+  border: 3px solid var(--ink);
+  background: var(--cyan);
+  transform-origin: bottom;
+  animation: meter-kick 1.8s var(--ease) infinite alternate;
+}
+
+.signal-meter span:nth-child(3) {
+  background: var(--green);
+  animation-delay: 120ms;
+}
+
+.signal-meter span:nth-child(4) {
+  background: var(--yellow);
+  animation-delay: 240ms;
+}
+
+.signal-meter span:nth-child(5) {
+  background: var(--pink);
+  animation-delay: 360ms;
+}
+
 @keyframes mesh-drift {
   0% {
     background-position: 0% 0%;
@@ -548,6 +690,40 @@ select {
   }
   100% {
     transform: translateX(-100%);
+  }
+}
+
+@keyframes signal-core {
+  0% {
+    transform: rotate(-5deg) scale(0.96);
+  }
+  100% {
+    transform: rotate(5deg) scale(1.04);
+  }
+}
+
+@keyframes rail-orbit {
+  0% {
+    transform: rotate(0deg) translateX(0);
+  }
+  100% {
+    transform: rotate(360deg) translateX(0);
+  }
+}
+
+@keyframes meter-kick {
+  0% {
+    transform: scaleY(0.42);
+  }
+  100% {
+    transform: scaleY(1);
+  }
+}
+
+@media (min-width: 1280px) {
+  .dashboard-panel {
+    max-height: calc(100vh - 140px);
+    overflow-y: auto;
   }
 }
 

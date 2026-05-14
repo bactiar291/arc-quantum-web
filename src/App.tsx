@@ -7,6 +7,7 @@ import { Header } from './components/Header'
 import { IntroGate } from './components/IntroGate'
 import { PrivyAppProvider } from './components/PrivyAppProvider'
 import { QuantumVisual } from './components/QuantumVisual'
+import { SignalRail } from './components/SignalRail'
 import { StatusBar } from './components/StatusBar'
 import { BridgePanel } from './components/panels/BridgePanel'
 import { DeployPanel } from './components/panels/DeployPanel'
@@ -102,9 +103,10 @@ function Shell() {
           <ProtocolMatrix activeTab={activeTab} />
         </section>
 
-        <aside className="space-y-5">
+        <aside className="space-y-5 xl:sticky xl:top-5 xl:self-start">
           <Dashboard />
           <QuantumVisual />
+          <SignalRail />
         </aside>
       </main>
 
