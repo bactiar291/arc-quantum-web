@@ -12,6 +12,15 @@ runtime.global ??= globalThis
 runtime.process ??= process
 
 const nativeFetch = globalThis.fetch?.bind(globalThis)
+export const PRIVY_ACCESS_TOKEN_STORAGE_KEY = 'arc_quantum_privy_access_token'
+
+function readPrivyAccessToken() {
+  try {
+    return sessionStorage.getItem(PRIVY_ACCESS_TOKEN_STORAGE_KEY)
+  } catch {
+    return null
+  }
+}
 
 if (nativeFetch) {
   globalThis.fetch = ((input: RequestInfo | URL, init?: RequestInit) => {
@@ -21,8 +30,17 @@ if (nativeFetch) {
         'https://api.circle.com/v1/stablecoinKits/',
         '/api/circle/stablecoinKits/'
       )
+      const headers = new Headers(
+        init?.headers ?? (input instanceof Request ? input.headers : undefined)
+      )
+      const privyToken = readPrivyAccessToken()
+      if (privyToken) {
+        headers.set('authorization', `Bearer ${privyToken}`)
+      } else {
+        headers.delete('authorization')
+      }
       const nextInput = input instanceof Request ? new Request(nextUrl, input) : nextUrl
-      return nativeFetch(nextInput, init)
+      return nativeFetch(nextInput, { ...init, headers })
     }
     return nativeFetch(input, init)
   }) as typeof fetch

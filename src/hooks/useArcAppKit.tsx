@@ -52,6 +52,7 @@ import { quantumTokenBytecode } from '../lib/bytecode'
 import { erc20Abi, quantumTokenAbi } from '../lib/contracts'
 import { CIRCLE_KIT_KEY } from '../lib/env'
 import { EURC_TOKEN } from '../lib/tokens'
+import { PRIVY_ACCESS_TOKEN_STORAGE_KEY } from '../polyfills'
 import { useAppStore } from '../store/useAppStore'
 import { usePrivyBridge } from '../components/PrivyAppProvider'
 import { useTrackedTx } from './useTrackedTx'
@@ -597,8 +598,16 @@ export function ArcKitProvider({ children }: { children: ReactNode }) {
     return adapter ?? (await buildAdapter(true)).adapter
   }, [adapter, buildAdapter, switchToArc])
 
+  const ensureCircleProxyAuth = useCallback(async () => {
+    if (!privy.enabled) return
+    const token = privy.accessToken ?? (await privy.refreshAccessToken())
+    if (!token) throw new Error('Privy auth token missing.')
+    sessionStorage.setItem(PRIVY_ACCESS_TOKEN_STORAGE_KEY, token)
+  }, [privy])
+
   const estimateSwap = useCallback(
     async ({ amount, direction, slippageBps }: SwapRequest) => {
+      await ensureCircleProxyAuth()
       const activeAdapter = await readyAdapter()
       const { tokenIn, tokenOut } = swapTokens(direction)
       return kit.estimateSwap({
@@ -612,11 +621,12 @@ export function ArcKitProvider({ children }: { children: ReactNode }) {
         }
       } satisfies SwapParams)
     },
-    [kit, readyAdapter]
+    [ensureCircleProxyAuth, kit, readyAdapter]
   )
 
   const executeSwap = useCallback(
     async (request: SwapRequest) => {
+      await ensureCircleProxyAuth()
       const { tokenIn, tokenOut } = swapTokens(request.direction)
       const tracked = await track('swap', `Swap ${tokenIn} to ${tokenOut}`, async () => {
         const activeAdapter = await readyAdapter()
@@ -638,11 +648,12 @@ export function ArcKitProvider({ children }: { children: ReactNode }) {
       if (!tracked.value) throw new Error('Swap result kosong.')
       return tracked.value
     },
-    [kit, readyAdapter, track]
+    [ensureCircleProxyAuth, kit, readyAdapter, track]
   )
 
   const sendToken = useCallback(
     async ({ token, amount, to }: SendRequest) => {
+      await ensureCircleProxyAuth()
       const tracked = await track('send', `Send ${token} to ${to.slice(0, 10)}...`, async () => {
         const activeAdapter = await readyAdapter()
         const tokenParam: SendParams['token'] =
@@ -658,7 +669,7 @@ export function ArcKitProvider({ children }: { children: ReactNode }) {
       if (!tracked.value) throw new Error('Send result kosong.')
       return tracked.value
     },
-    [kit, readyAdapter, track]
+    [ensureCircleProxyAuth, kit, readyAdapter, track]
   )
 
   const sendErc20Wallet = useCallback(
@@ -712,6 +723,7 @@ export function ArcKitProvider({ children }: { children: ReactNode }) {
 
   const bridgeUsdc = useCallback(
     async ({ amount, direction, recipient }: BridgeRequest) => {
+      await ensureCircleProxyAuth()
       const summary =
         direction === 'SEPOLIA_TO_ARC'
           ? 'Bridge USDC Sepolia to Arc'
@@ -750,7 +762,7 @@ export function ArcKitProvider({ children }: { children: ReactNode }) {
       if (!tracked.value) throw new Error('Bridge result kosong.')
       return tracked.value
     },
-    [adapter, buildAdapter, kit, switchToArc, switchToSepolia, track]
+    [adapter, buildAdapter, ensureCircleProxyAuth, kit, switchToArc, switchToSepolia, track]
   )
 
   const deployToken = useCallback(

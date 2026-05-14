@@ -4,6 +4,7 @@ pragma solidity ^0.8.27;
 contract SmartSessionAccount {
     address public immutable owner;
     uint256 public nonce;
+    mapping(address => bool) public allowedTargets;
 
     struct Session {
         uint64 expiresAt;
@@ -19,6 +20,7 @@ contract SmartSessionAccount {
 
     error NotOwner();
     error NotAuthorized();
+    error TargetNotAllowed();
     error CallFailed(bytes result);
     error Expired();
 
@@ -33,6 +35,10 @@ contract SmartSessionAccount {
     }
 
     receive() external payable {}
+
+    function setAllowedTarget(address target, bool allowed) external onlyOwner {
+        allowedTargets[target] = allowed;
+    }
 
     function enableSession(address key, uint64 expiresAt) external onlyOwner {
         if (expiresAt <= block.timestamp) revert Expired();
@@ -57,6 +63,7 @@ contract SmartSessionAccount {
         bytes calldata data
     ) external returns (bytes memory result) {
         _authorize();
+        if (msg.sender != owner && !allowedTargets[to]) revert TargetNotAllowed();
         nonce++;
         (bool ok, bytes memory response) = to.call{value: value}(data);
         if (!ok) revert CallFailed(response);
@@ -74,6 +81,7 @@ contract SmartSessionAccount {
         nonce++;
         results = new bytes[](targets.length);
         for (uint256 i = 0; i < targets.length; i++) {
+            if (msg.sender != owner && !allowedTargets[targets[i]]) revert TargetNotAllowed();
             (bool ok, bytes memory response) = targets[i].call{value: values[i]}(payloads[i]);
             if (!ok) revert CallFailed(response);
             results[i] = response;

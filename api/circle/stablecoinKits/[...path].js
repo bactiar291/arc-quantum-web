@@ -1,9 +1,43 @@
 /* global URL, fetch, process */
 
+import { PrivyClient } from '@privy-io/node'
+
 const TARGET = 'https://api.circle.com/v1/stablecoinKits'
 const PREFIX = '/api/circle/stablecoinKits/'
+let privyClient
+
+function getPrivyClient() {
+  const appId = process.env.PRIVY_APP_ID || process.env.VITE_PRIVY_APP_ID
+  const appSecret = process.env.PRIVY_APP_SECRET
+  if (!appId || !appSecret) {
+    throw new Error('Privy server env missing.')
+  }
+  if (!privyClient) {
+    privyClient = new PrivyClient({ appId, appSecret })
+  }
+  return privyClient
+}
 
 export default async function handler(request, response) {
+  response.setHeader('cache-control', 'no-store')
+
+  const authHeader = Array.isArray(request.headers.authorization)
+    ? request.headers.authorization[0]
+    : request.headers.authorization
+  const privyToken = authHeader?.replace(/^Bearer\s+/i, '')
+
+  if (!privyToken) {
+    response.status(401).json({ error: 'Unauthorized' })
+    return
+  }
+
+  try {
+    await getPrivyClient().utils().auth().verifyAccessToken(privyToken)
+  } catch {
+    response.status(401).json({ error: 'Invalid auth token' })
+    return
+  }
+
   const incomingUrl = new URL(request.url, `https://${request.headers.host || 'localhost'}`)
   const path = incomingUrl.pathname.startsWith(PREFIX)
     ? incomingUrl.pathname.slice(PREFIX.length)
@@ -19,15 +53,15 @@ export default async function handler(request, response) {
     targetUrl.searchParams.append(key, value)
   }
 
-  const kitKey =
-    process.env.CIRCLE_KIT_KEY ||
-    process.env.VITE_CIRCLE_KIT_KEY ||
-    request.headers.authorization?.replace(/^Bearer\s+/i, '') ||
-    ''
+  const kitKey = process.env.CIRCLE_KIT_KEY
+  if (!kitKey) {
+    response.status(503).json({ error: 'Service unavailable' })
+    return
+  }
 
   const headers = {
     'content-type': request.headers['content-type'] || 'application/json',
-    authorization: kitKey ? `Bearer ${kitKey}` : ''
+    authorization: `Bearer ${kitKey}`
   }
 
   try {
@@ -45,7 +79,6 @@ export default async function handler(request, response) {
     const text = await circleResponse.text()
     response
       .status(circleResponse.status)
-      .setHeader('cache-control', 'no-store')
       .setHeader('content-type', circleResponse.headers.get('content-type') || 'application/json')
       .send(text)
   } catch {

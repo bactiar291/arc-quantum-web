@@ -1,7 +1,7 @@
 import { GitBranchPlus, Rocket, Send, Shuffle, Terminal, Waves } from 'lucide-react'
-import { useState } from 'react'
+import { lazy, Suspense, useState } from 'react'
 
-import { ActionReactor, ProtocolMatrix, type ReactorTab } from './components/ActionReactor'
+import type { ReactorTab } from './components/ActionReactor'
 import { Dashboard } from './components/Dashboard'
 import { Header } from './components/Header'
 import { IntroGate } from './components/IntroGate'
@@ -17,6 +17,14 @@ import { StableSendPanel } from './components/panels/StableSendPanel'
 import { Button } from './components/ui/Button'
 import { Panel } from './components/ui/Panel'
 import { ArcKitProvider } from './hooks/useArcAppKit'
+
+const INTRO_KEY = 'arc-quantum-entered-v2'
+const ActionReactor = lazy(() =>
+  import('./components/ActionReactor').then((module) => ({ default: module.ActionReactor }))
+)
+const ProtocolMatrix = lazy(() =>
+  import('./components/ActionReactor').then((module) => ({ default: module.ProtocolMatrix }))
+)
 
 type TabId = ReactorTab
 
@@ -38,7 +46,7 @@ function ActivePanel({ tab }: { tab: TabId }) {
 
 function Shell() {
   const [entered, setEntered] = useState(
-    () => sessionStorage.getItem('arc-quantum-entered') === '1'
+    () => localStorage.getItem(INTRO_KEY) === '1'
   )
   const [activeTab, setActiveTab] = useState<TabId>('swap')
   const active = tabs.find((tab) => tab.id === activeTab) ?? tabs[0]
@@ -48,7 +56,7 @@ function Shell() {
     return (
       <IntroGate
         onEnter={() => {
-          sessionStorage.setItem('arc-quantum-entered', '1')
+          localStorage.setItem(INTRO_KEY, '1')
           setEntered(true)
         }}
       />
@@ -80,7 +88,7 @@ function Shell() {
               </div>
             </div>
 
-            <nav className="grid grid-cols-2 gap-3 md:grid-cols-5">
+            <nav className="scrollbar-none flex gap-2 overflow-x-auto pb-1 md:grid md:grid-cols-5 md:overflow-visible">
               {tabs.map((tab) => {
                 const Icon = tab.icon
                 return (
@@ -88,7 +96,7 @@ function Shell() {
                     key={tab.id}
                     variant={activeTab === tab.id ? 'primary' : 'ghost'}
                     onClick={() => setActiveTab(tab.id)}
-                    className="aspect-[1.6/1] w-full flex-col gap-1 px-2 py-2 text-lg md:aspect-square"
+                    className="min-w-24 flex-col gap-1 px-3 py-2 text-base md:aspect-square md:min-w-0 md:text-lg"
                   >
                     <Icon className="h-5 w-5" />
                     {tab.label}
@@ -99,8 +107,10 @@ function Shell() {
           </Panel>
 
           <ActivePanel tab={activeTab} />
-          <ActionReactor activeTab={activeTab} />
-          <ProtocolMatrix activeTab={activeTab} />
+          <Suspense fallback={<div className="h-48 animate-pulse rounded-lg bg-quantum-paper" />}>
+            <ActionReactor activeTab={activeTab} />
+            <ProtocolMatrix activeTab={activeTab} />
+          </Suspense>
         </section>
 
         <aside className="space-y-5 xl:sticky xl:top-5 xl:self-start">

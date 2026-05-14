@@ -76,6 +76,14 @@ select {
   mask-image: linear-gradient(to bottom, #000 0%, transparent 88%);
 }
 
+.scrollbar-none {
+  scrollbar-width: none;
+}
+
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
 .cyber-band {
   pointer-events: none;
   position: fixed;
@@ -764,5 +772,22 @@ select {
 
   .reactor-canvas-wrap {
     inset: 96px 0 118px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body {
+    animation: none !important;
+    background-size: 100% 100% !important;
+  }
+
+  .cyber-band,
+  .grid-noise {
+    animation: none !important;
+  }
+
+  * {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
   }
 }

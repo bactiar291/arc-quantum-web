@@ -19,6 +19,7 @@ import { isAddress, type Address, type EIP1193Provider } from 'viem'
 
 import { arcTestnet } from '../lib/arc'
 import { PRIVY_APP_ID, PRIVY_CLIENT_ID } from '../lib/env'
+import { PRIVY_ACCESS_TOKEN_STORAGE_KEY } from '../polyfills'
 
 type EthereumPrivyWallet = {
   type: 'ethereum'
@@ -105,6 +106,11 @@ function PrivyBridge({ children }: { children: ReactNode }) {
     if (!authenticated) return null
     const token = await getAccessToken()
     setAccessToken(token)
+    if (token) {
+      sessionStorage.setItem(PRIVY_ACCESS_TOKEN_STORAGE_KEY, token)
+    } else {
+      sessionStorage.removeItem(PRIVY_ACCESS_TOKEN_STORAGE_KEY)
+    }
     return token
   }, [authenticated, getAccessToken])
 
@@ -114,10 +120,17 @@ function PrivyBridge({ children }: { children: ReactNode }) {
       setAccessToken(null)
       setServerVerified(null)
       setServerAuthError(null)
+      sessionStorage.removeItem(PRIVY_ACCESS_TOKEN_STORAGE_KEY)
       return
     }
     void getAccessToken().then((token) => {
-      if (alive) setAccessToken(token)
+      if (!alive) return
+      setAccessToken(token)
+      if (token) {
+        sessionStorage.setItem(PRIVY_ACCESS_TOKEN_STORAGE_KEY, token)
+      } else {
+        sessionStorage.removeItem(PRIVY_ACCESS_TOKEN_STORAGE_KEY)
+      }
     })
     return () => {
       alive = false

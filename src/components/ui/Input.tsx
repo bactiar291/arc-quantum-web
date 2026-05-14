@@ -2,16 +2,18 @@ import { clsx } from 'clsx'
 import type { InputHTMLAttributes } from 'react'
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
-  label: string
+  label?: string
   hint?: string
 }
 
 export function Input({ label, hint, className, ...props }: InputProps) {
   return (
     <label className="block">
-      <span className="mb-2 block font-display text-xl uppercase leading-none text-quantum-ink">
-        {label}
-      </span>
+      {label ? (
+        <span className="mb-2 block font-display text-xl uppercase leading-none text-quantum-ink">
+          {label}
+        </span>
+      ) : null}
       <input
         className={clsx(
           'input-quantum w-full px-3 py-3 font-mono text-sm',

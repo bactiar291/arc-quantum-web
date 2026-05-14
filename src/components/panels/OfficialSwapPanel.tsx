@@ -1,4 +1,4 @@
-import { ArrowDown, RefreshCw, Shuffle } from 'lucide-react'
+import { ArrowDown, ChevronDown, Settings, Shuffle } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { formatUnits } from 'viem'
 import { useReadContract } from 'wagmi'
@@ -134,42 +134,51 @@ export function OfficialSwapPanel() {
   }
 
   return (
-    <Panel className="compact-action-panel animate-reveal" shadow="yellow">
-      <div className="mb-3 flex items-center gap-2 border-b-4 border-quantum-black pb-3 font-display text-3xl">
-        <Shuffle className="h-7 w-7 text-quantum-yellow" />
-        ARC STABLE SWAP
-      </div>
-
-      <div className="space-y-2">
-        <div className="mini-swap-box bg-white">
-          <div className="mb-2 flex items-center justify-between gap-3 font-mono text-[11px] uppercase text-quantum-black/55">
-            <span>From</span>
-            <span>
-              Bal {balanceLabel} {tokenIn.symbol}
-            </span>
+    <div className="mx-auto w-full max-w-[480px]">
+      <Panel className="animate-reveal" shadow="yellow">
+        <div className="mb-4 flex items-center justify-between">
+          <div className="flex items-center gap-2 font-display text-2xl">
+            <Shuffle className="h-5 w-5 text-quantum-yellow" />
+            Swap
           </div>
-          <div className="grid gap-2 md:grid-cols-[1fr_150px]">
+          <button
+            className="grid h-8 w-8 place-items-center border-2 border-quantum-black/20 text-quantum-black/50 hover:border-quantum-black hover:text-quantum-black"
+            onClick={() => void runQuote()}
+            type="button"
+            aria-label="Refresh quote settings"
+          >
+            <Settings className="h-4 w-4" />
+          </button>
+        </div>
+
+        <div className="rounded-lg border-2 border-quantum-black/10 bg-quantum-paper p-4 hover:border-quantum-black/20">
+          <div className="mb-2 font-mono text-[11px] uppercase text-quantum-black/50">
+            You pay
+          </div>
+          <div className="flex items-center gap-3">
             <Input
-              label="Amount"
+              aria-label="Amount to pay"
+              className="min-h-0 flex-1 border-0 bg-transparent p-0 text-2xl font-bold shadow-none focus:bg-transparent focus:shadow-none"
               inputMode="decimal"
               value={amount}
               onChange={(event) => setAmount(event.target.value)}
-              className="compact-input"
             />
-            <div className="border-4 border-quantum-black bg-quantum-yellow p-3 shadow-[4px_4px_0_#111]">
-              <div className="font-display text-3xl leading-none">
-                {tokenIn.symbol}
-              </div>
-              <div className="truncate font-mono text-[11px] text-quantum-black/50">
-                {tokenIn.address}
-              </div>
+            <div className="flex items-center gap-2 rounded-full border-2 border-quantum-black bg-quantum-yellow px-3 py-1.5">
+              <span className="font-display text-base">{tokenIn.symbol}</span>
+              <ChevronDown className="h-3 w-3" />
             </div>
           </div>
-          <div className="mt-2 grid grid-cols-4 gap-2">
+          <div className="mt-2 flex justify-between font-mono text-xs text-quantum-black/40">
+            <span>≈ ${Number(amount || 0).toFixed(2)}</span>
+            <span>
+              Balance: {balanceLabel} {tokenIn.symbol}
+            </span>
+          </div>
+          <div className="mt-3 grid grid-cols-4 gap-2">
             {[25, 50, 75, 100].map((percent) => (
               <button
                 key={percent}
-                className="border-4 border-quantum-black bg-quantum-paper px-2 py-1 font-mono text-[11px] uppercase shadow-[3px_3px_0_#111] disabled:opacity-40"
+                className="rounded border border-quantum-black/20 px-2 py-1 font-mono text-[11px] text-quantum-black/55 hover:border-quantum-black disabled:opacity-40"
                 disabled={balanceValue === null || balanceValue <= 0n}
                 onClick={() => setPercentAmount(percent)}
                 type="button"
@@ -180,85 +189,88 @@ export function OfficialSwapPanel() {
           </div>
         </div>
 
-        <div className="grid gap-2 md:grid-cols-[1fr_52px_1fr]">
-          <div className="mini-swap-box bg-quantum-purple font-mono text-[11px] uppercase leading-4 text-quantum-black">
-            Circle route: USDC / EURC only on Arc Testnet.
-          </div>
+        <div className="my-1 flex justify-center">
           <button
-            className="grid min-h-12 place-items-center border-4 border-quantum-black bg-quantum-cyan text-quantum-black shadow-[4px_4px_0_#111]"
             onClick={flip}
             aria-label="Flip swap direction"
+            className="grid h-9 w-9 place-items-center border-2 border-quantum-black bg-white shadow-[3px_3px_0_#111] transition-transform active:translate-x-px active:translate-y-px"
             type="button"
           >
-            <ArrowDown className="h-6 w-6" />
+            <ArrowDown className="h-4 w-4" />
           </button>
-          <div className="mini-swap-box bg-quantum-green">
-            <div className="mb-1 font-mono text-[11px] uppercase text-quantum-black/55">To</div>
-            <div className="flex items-end justify-between gap-2">
-              <div>
-                <div className="font-display text-4xl leading-none">{tokenOut.symbol}</div>
-                <div className="max-w-[160px] truncate font-mono text-[10px] text-quantum-black/50">
-                  {tokenOut.address}
-                </div>
-              </div>
-              <div className="text-right font-mono text-[11px] uppercase">
-                <div className={quoteBusy ? 'animate-pulse text-quantum-yellow' : 'text-quantum-black'}>
-                  {quote || 'AUTO'}
-                </div>
-                <div className="text-quantum-black/45">Est. output</div>
-              </div>
+        </div>
+
+        <div className="rounded-lg border-2 border-quantum-black/10 bg-quantum-paper p-4">
+          <div className="mb-2 font-mono text-[11px] uppercase text-quantum-black/50">
+            You receive
+          </div>
+          <div className="flex items-center gap-3">
+            <div
+              className={`flex-1 font-display text-2xl ${
+                quoteBusy ? 'animate-pulse text-quantum-black/30' : ''
+              }`}
+            >
+              {quote || '-'}
             </div>
+            <div className="flex items-center gap-2 rounded-full border-2 border-quantum-black bg-quantum-green px-3 py-1.5">
+              <span className="font-display text-base">{tokenOut.symbol}</span>
+              <ChevronDown className="h-3 w-3" />
+            </div>
+          </div>
+          <div className="mt-2 font-mono text-xs text-quantum-black/40">
+            {quoteBusy
+              ? 'Refreshing...'
+              : rate
+                ? `1 ${tokenIn.symbol} ≈ ${rate.toFixed(6)} ${tokenOut.symbol}`
+                : 'Auto-refreshes on change'}
           </div>
         </div>
 
-        <div className="grid gap-2 md:grid-cols-[1fr_150px_150px]">
-          <Input
-            label="Slippage BPS"
-            type="number"
-            min={10}
-            max={500}
-            value={slippageBps}
-            onChange={(event) => setSlippageBps(Number(event.target.value))}
-            hint={`${(slippageBps / 100).toFixed(2)}%`}
-            className="compact-input"
-          />
-          <div className="mini-swap-box bg-white font-mono text-[11px] uppercase">
-            <div className="text-quantum-black/55">Rate</div>
-            <div className="truncate text-quantum-cyan">
-              {rate ? `1 ${tokenIn.symbol} ≈ ${rate.toFixed(6)} ${tokenOut.symbol}` : '-'}
-            </div>
+        <div className="mt-3 flex items-center justify-between gap-3 border-t border-quantum-black/10 pt-3">
+          <span className="font-mono text-xs text-quantum-black/50">Slippage</span>
+          <div className="flex gap-1">
+            {[10, 50, 100].map((bps) => (
+              <button
+                key={bps}
+                onClick={() => setSlippageBps(bps)}
+                className={`rounded border px-2 py-0.5 font-mono text-[11px] ${
+                  slippageBps === bps
+                    ? 'border-quantum-black bg-quantum-black text-white'
+                    : 'border-quantum-black/20 text-quantum-black/50 hover:border-quantum-black/50'
+                }`}
+                type="button"
+              >
+                {bps / 100}%
+              </button>
+            ))}
           </div>
-          <Button variant="ghost" onClick={() => void runQuote()} disabled={quoteBusy || disabled}>
-            <RefreshCw className={quoteBusy ? 'h-5 w-5 animate-spin' : 'h-5 w-5'} />
-            {quoteBusy ? 'Quote' : 'Refresh'}
-          </Button>
         </div>
 
         {!isConnected ? (
-          <Button className="w-full" onClick={connect} disabled={isConnecting}>
-            Connect Arc Wallet
+          <Button className="mt-4 w-full" onClick={connect} disabled={isConnecting}>
+            Connect Wallet
           </Button>
         ) : !isSignedIn ? (
-          <Button className="w-full" variant="cyan" onClick={signIn} disabled={isConnecting}>
+          <Button className="mt-4 w-full" variant="cyan" onClick={signIn} disabled={isConnecting}>
             Verify Wallet
           </Button>
         ) : (
-          <Button className="w-full" onClick={runSwap} disabled={disabled}>
-            {swapBusy ? 'Swapping' : 'Swap Wallet Gas'}
+          <Button className="mt-4 w-full" onClick={runSwap} disabled={disabled || swapBusy}>
+            {swapBusy ? 'Swapping...' : `Swap ${tokenIn.symbol} -> ${tokenOut.symbol}`}
           </Button>
         )}
 
         {hash ? (
-          <div className="break-all border-4 border-quantum-black bg-quantum-green p-3 font-mono text-xs text-quantum-black shadow-[5px_5px_0_#111]">
-            TX {hash}
+          <div className="mt-3 break-all rounded border-2 border-quantum-green bg-quantum-green/20 p-2 font-mono text-xs">
+            OK {hash}
           </div>
         ) : null}
         {error ? (
-          <div className="break-words border-4 border-quantum-black bg-quantum-red p-3 font-mono text-xs text-quantum-black shadow-[5px_5px_0_#111]">
+          <div className="mt-3 break-words rounded border-2 border-quantum-red/50 bg-quantum-red/10 p-2 font-mono text-xs text-quantum-red">
             {error}
           </div>
         ) : null}
-      </div>
-    </Panel>
+      </Panel>
+    </div>
   )
 }
