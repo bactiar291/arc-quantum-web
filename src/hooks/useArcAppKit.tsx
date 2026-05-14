@@ -79,6 +79,19 @@ interface SendRequest {
   to: Address
 }
 
+interface Erc20SendRequest {
+  tokenAddress: Address
+  symbol: string
+  decimals: number
+  amount: string
+  to: Address
+}
+
+interface NativeSendRequest {
+  amount: string
+  to: Address
+}
+
 interface BridgeRequest {
   amount: string
   direction: BridgeDirection
@@ -100,6 +113,10 @@ interface DeployResult {
 interface SponsoredSendResult {
   txHash: Hex
   smartAccountAddress: Address
+}
+
+interface HashResult {
+  txHash: Hex
 }
 
 interface StoredSignIn {
@@ -126,7 +143,11 @@ interface ArcKitContextValue {
   estimateSwap: (request: SwapRequest) => Promise<SwapEstimate>
   executeSwap: (request: SwapRequest) => Promise<SwapResult>
   sendToken: (request: SendRequest) => Promise<BridgeStep>
+  sendErc20Wallet: (request: Erc20SendRequest) => Promise<HashResult>
   sendTokenSponsored: (request: SendRequest) => Promise<SponsoredSendResult>
+  sendErc20Sponsored: (request: Erc20SendRequest) => Promise<SponsoredSendResult>
+  sendNativeWallet: (request: NativeSendRequest) => Promise<HashResult>
+  sendNativeSponsored: (request: NativeSendRequest) => Promise<SponsoredSendResult>
   prepareSponsorAccount: () => Promise<Address>
   bridgeUsdc: (request: BridgeRequest) => Promise<BridgeResult>
   deployToken: (request: DeployRequest) => Promise<DeployResult>
@@ -594,6 +615,55 @@ export function ArcKitProvider({ children }: { children: ReactNode }) {
     [kit, readyAdapter, track]
   )
 
+  const sendErc20Wallet = useCallback(
+    async ({ tokenAddress, symbol, decimals, amount, to }: Erc20SendRequest) => {
+      const value = parseUnits(amount || '0', decimals)
+      if (value <= 0n) throw new Error('Amount must be greater than zero.')
+      const data = encodeFunctionData({
+        abi: erc20Abi,
+        functionName: 'transfer',
+        args: [to, value]
+      })
+      const tracked = await track(
+        'send',
+        `Wallet send ${symbol} to ${to.slice(0, 10)}...`,
+        async () => {
+          await switchToArc()
+          const provider = getProvider()
+          const from = account ?? (await requestAccounts(provider))
+          const hash = (await provider.request({
+            method: 'eth_sendTransaction',
+            params: [{ from, to: tokenAddress, data, value: '0x0' }]
+          })) as Hex
+          return { hash, value: { txHash: hash } }
+        }
+      )
+      if (!tracked.value) throw new Error('Wallet send result kosong.')
+      return tracked.value
+    },
+    [account, switchToArc, track]
+  )
+
+  const sendNativeWallet = useCallback(
+    async ({ amount, to }: NativeSendRequest) => {
+      const value = parseUnits(amount || '0', 18)
+      if (value <= 0n) throw new Error('Amount must be greater than zero.')
+      const tracked = await track('send', `Wallet native send to ${to.slice(0, 10)}...`, async () => {
+        await switchToArc()
+        const provider = getProvider()
+        const from = account ?? (await requestAccounts(provider))
+        const hash = (await provider.request({
+          method: 'eth_sendTransaction',
+          params: [{ from, to, value: `0x${value.toString(16)}` }]
+        })) as Hex
+        return { hash, value: { txHash: hash } }
+      })
+      if (!tracked.value) throw new Error('Wallet native send result kosong.')
+      return tracked.value
+    },
+    [account, switchToArc, track]
+  )
+
   const sendTokenSponsored = useCallback(
     async ({ token, amount, to }: SendRequest) => {
       const tokenMeta = token === 'USDC' ? USDC_TOKEN : EURC_TOKEN
@@ -624,6 +694,65 @@ export function ArcKitProvider({ children }: { children: ReactNode }) {
         }
       )
       if (!tracked.value) throw new Error('Sponsored send result kosong.')
+      return tracked.value
+    },
+    [getSponsorClient, track]
+  )
+
+  const sendErc20Sponsored = useCallback(
+    async ({ tokenAddress, symbol, decimals, amount, to }: Erc20SendRequest) => {
+      const value = parseUnits(amount || '0', decimals)
+      if (value <= 0n) throw new Error('Amount must be greater than zero.')
+      const data = encodeFunctionData({
+        abi: erc20Abi,
+        functionName: 'transfer',
+        args: [to, value]
+      })
+      const tracked = await track(
+        'send',
+        `Sponsored send ${symbol} to ${to.slice(0, 10)}...`,
+        async () => {
+          const sponsor = await getSponsorClient()
+          const hash = await sponsor.client.sendTransaction({
+            to: tokenAddress,
+            data,
+            value: 0n
+          })
+          return {
+            hash,
+            value: {
+              txHash: hash,
+              smartAccountAddress: sponsor.account.address
+            }
+          }
+        }
+      )
+      if (!tracked.value) throw new Error('Sponsored send result kosong.')
+      return tracked.value
+    },
+    [getSponsorClient, track]
+  )
+
+  const sendNativeSponsored = useCallback(
+    async ({ amount, to }: NativeSendRequest) => {
+      const value = parseUnits(amount || '0', 18)
+      if (value <= 0n) throw new Error('Amount must be greater than zero.')
+      const tracked = await track('send', `Sponsored native send to ${to.slice(0, 10)}...`, async () => {
+        const sponsor = await getSponsorClient()
+        const hash = await sponsor.client.sendTransaction({
+          to,
+          value,
+          data: '0x'
+        })
+        return {
+          hash,
+          value: {
+            txHash: hash,
+            smartAccountAddress: sponsor.account.address
+          }
+        }
+      })
+      if (!tracked.value) throw new Error('Sponsored native send result kosong.')
       return tracked.value
     },
     [getSponsorClient, track]
@@ -739,7 +868,11 @@ export function ArcKitProvider({ children }: { children: ReactNode }) {
       estimateSwap,
       executeSwap,
       sendToken,
+      sendErc20Wallet,
       sendTokenSponsored,
+      sendErc20Sponsored,
+      sendNativeWallet,
+      sendNativeSponsored,
       prepareSponsorAccount,
       bridgeUsdc,
       deployToken
@@ -757,6 +890,10 @@ export function ArcKitProvider({ children }: { children: ReactNode }) {
       isConnecting,
       lastError,
       prepareSponsorAccount,
+      sendErc20Sponsored,
+      sendErc20Wallet,
+      sendNativeSponsored,
+      sendNativeWallet,
       sendTokenSponsored,
       signIn,
       signInExpiresAt,

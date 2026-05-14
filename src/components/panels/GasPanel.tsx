@@ -127,8 +127,8 @@ export function GasPanel() {
         </div>
 
         <div className="border-2 border-quantum-orange bg-black p-3 font-mono text-xs uppercase leading-5 text-quantum-orange">
-          Sponsor gas currently applies to Send tab beta. Swap/bridge still use Circle App
-          Kit wallet signer, so popup is expected there.
+          Sponsor gas currently applies to Send tab beta for native and ERC20 transfers.
+          Swap, bridge, and deploy still use wallet signer, so popup is expected there.
         </div>
 
         <div className="border-2 border-quantum-purple bg-black p-3 font-mono text-xs uppercase leading-5">
@@ -180,7 +180,7 @@ export function GasPanel() {
         </div>
 
         <Button variant={aaPrepared ? 'orange' : 'red'} className="w-full" disabled>
-          {aaPrepared ? 'AA Env Prepared / Wallet Gas Live' : 'AA Env Missing / Wallet Gas Live'}
+          {aaPrepared ? 'AA Env Prepared / Send Sponsor Live' : 'AA Env Missing / Wallet Gas Live'}
         </Button>
       </div>
     </Panel>

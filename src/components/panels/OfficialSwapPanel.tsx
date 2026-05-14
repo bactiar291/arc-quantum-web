@@ -125,6 +125,12 @@ export function OfficialSwapPanel() {
           </div>
         </div>
 
+        <div className="border-2 border-quantum-purple bg-black p-3 font-mono text-xs uppercase leading-5 text-white/65">
+          Official Circle Swap on Arc Testnet is limited to supported stable
+          assets. Tokens deployed from this app need an AMM router and liquidity
+          pool before they can be swapped.
+        </div>
+
         <button
           className="mx-auto grid h-12 w-12 place-items-center border-2 border-white bg-quantum-cyan text-black shadow-[4px_4px_0_#000]"
           onClick={flip}
