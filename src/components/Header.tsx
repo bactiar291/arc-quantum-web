@@ -9,15 +9,27 @@ function shortAddress(address: string) {
 }
 
 export function Header() {
-  const { account, connect, isConnecting, isSignedIn, signIn, chainId } = useArcAppKit()
+  const {
+    account,
+    chainId,
+    connect,
+    isConnecting,
+    isSignedIn,
+    privyAuthenticated,
+    privyEnabled,
+    signIn,
+    walletLabel
+  } = useArcAppKit()
   const action = account && !isSignedIn ? signIn : connect
   const label = account
     ? isSignedIn
       ? shortAddress(account)
-      : 'Sign In'
+      : 'Verify'
     : isConnecting
       ? 'Connecting'
-      : 'Connect'
+      : privyEnabled
+        ? 'Login'
+        : 'Connect'
 
   return (
     <header className="sticky top-0 z-30 border-b-4 border-quantum-black bg-white/90 px-4 py-3 backdrop-blur md:px-6">
@@ -30,13 +42,19 @@ export function Header() {
             </h1>
             <div className="flex items-center gap-2 font-mono text-[11px] uppercase text-quantum-ink/65">
               <Terminal className="h-3.5 w-3.5" />
-              AppKit signer / public RPC / wallet gas
+              Privy auth / AppKit signer / public RPC
             </div>
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <div className="border-4 border-quantum-black bg-quantum-yellow px-3 py-2 font-mono text-[11px] uppercase text-quantum-ink shadow-[5px_5px_0_#111]">
             CHAIN <b className="text-quantum-cyan">{chainId || 'OFF'}</b>
+          </div>
+          <div className="border-4 border-quantum-black bg-white px-3 py-2 font-mono text-[11px] uppercase text-quantum-ink shadow-[5px_5px_0_#111]">
+            AUTH{' '}
+            <b className={privyAuthenticated ? 'text-quantum-green' : 'text-quantum-red'}>
+              {privyAuthenticated ? walletLabel || 'PRIVY' : 'OFF'}
+            </b>
           </div>
           <Button onClick={action} disabled={isConnecting} className="min-w-44">
             {isSignedIn ? <ShieldCheck className="h-5 w-5" /> : <PlugZap className="h-5 w-5" />}

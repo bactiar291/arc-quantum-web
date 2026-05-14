@@ -53,6 +53,7 @@ import { erc20Abi, quantumTokenAbi } from '../lib/contracts'
 import { CIRCLE_KIT_KEY } from '../lib/env'
 import { EURC_TOKEN } from '../lib/tokens'
 import { useAppStore } from '../store/useAppStore'
+import { usePrivyBridge } from '../components/PrivyAppProvider'
 import { useTrackedTx } from './useTrackedTx'
 
 type StableToken = 'USDC' | 'EURC'
@@ -122,6 +123,12 @@ interface ArcKitContextValue {
   isSignedIn: boolean
   authSignature: Hex | null
   authToken: string | null
+  privyEnabled: boolean
+  privyAuthenticated: boolean
+  privyServerVerified: boolean | null
+  privyServerAuthError: string | null
+  privyUserId: string | null
+  walletLabel: string | null
   signInExpiresAt: number
   lastError: string | null
   connect: () => Promise<void>
@@ -141,7 +148,7 @@ const ArcKitContext = createContext<ArcKitContextValue | null>(null)
 const signInStorageKey = 'arc_quantum_signin_v2'
 const signInLifetimeMs = 7 * 24 * 60 * 60 * 1000
 
-function getProvider() {
+function getInjectedProvider() {
   const provider = window.ethereum
   if (!provider) throw new Error('Injected wallet tidak ditemukan.')
   return provider
@@ -375,10 +382,28 @@ export function ArcKitProvider({ children }: { children: ReactNode }) {
   const [authToken, setAuthToken] = useState<string | null>(null)
   const [signInExpiresAt, setSignInExpiresAt] = useState(0)
   const [lastError, setLastError] = useState<string | null>(null)
+  const privy = usePrivyBridge()
   const setWallet = useAppStore((state) => state.setWallet)
   const addToken = useAppStore((state) => state.addToken)
   const track = useTrackedTx()
   const kit = useMemo(() => new AppKit(), [])
+
+  const resetWalletState = useCallback(() => {
+    setWallet(null, false)
+    setAccount(null)
+    setAdapter(null)
+    setChainId(null)
+    setIsSignedIn(false)
+    setAuthSignature(null)
+    setAuthToken(null)
+    setSignInExpiresAt(0)
+  }, [setWallet])
+
+  const resolveProvider = useCallback(async () => {
+    const privyProvider = await privy.getProvider()
+    if (privyProvider) return privyProvider
+    return getInjectedProvider()
+  }, [privy])
 
   const applyStoredAuth = useCallback((address: Address) => {
     const stored = readStoredSignIn(address)
@@ -389,8 +414,11 @@ export function ArcKitProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const buildAdapter = useCallback(async (request = true) => {
-    const provider = getProvider()
-    const address = request ? await requestAccounts(provider) : await authorizedAccount(provider)
+    const provider = await resolveProvider()
+    const providerAddress = request
+      ? await requestAccounts(provider)
+      : await authorizedAccount(provider)
+    const address = providerAddress ?? privy.account
     if (!address) throw new Error('Wallet belum connected.')
     const nextAdapter = await createViemAdapterFromProvider({
       provider,
@@ -410,7 +438,7 @@ export function ArcKitProvider({ children }: { children: ReactNode }) {
     applyStoredAuth(address)
     setChainId(await currentChainId(provider))
     return { adapter: nextAdapter, address }
-  }, [applyStoredAuth, setWallet])
+  }, [applyStoredAuth, privy.account, resolveProvider, setWallet])
 
   useEffect(() => {
     const provider = window.ethereum
@@ -420,22 +448,13 @@ export function ArcKitProvider({ children }: { children: ReactNode }) {
       on?: (event: string, handler: (...args: unknown[]) => void) => void
       removeListener?: (event: string, handler: (...args: unknown[]) => void) => void
     }
-    const resetAuth = () => {
-      setWallet(null, false)
-      setAccount(null)
-      setAdapter(null)
-      setIsSignedIn(false)
-      setAuthSignature(null)
-      setAuthToken(null)
-      setSignInExpiresAt(0)
-    }
     const restore = async () => {
       try {
         const result = await buildAdapter(false)
         if (!alive) return
         applyStoredAuth(result.address)
       } catch {
-        if (alive) resetAuth()
+        if (alive) resetWalletState()
       }
     }
     const handleAccountsChanged = () => {
@@ -454,10 +473,37 @@ export function ArcKitProvider({ children }: { children: ReactNode }) {
       walletEvents.removeListener?.('accountsChanged', handleAccountsChanged)
       walletEvents.removeListener?.('chainChanged', handleChainChanged)
     }
-  }, [applyStoredAuth, buildAdapter, setWallet])
+  }, [applyStoredAuth, buildAdapter, resetWalletState])
+
+  useEffect(() => {
+    if (!privy.enabled) return
+    if (!privy.ready) return
+    if (!privy.account) {
+      resetWalletState()
+      return
+    }
+    let alive = true
+    void buildAdapter(false).catch(() => {
+      if (alive) resetWalletState()
+    })
+    return () => {
+      alive = false
+    }
+  }, [buildAdapter, privy.account, privy.enabled, privy.ready, resetWalletState])
+
+  useEffect(() => {
+    if (!privy.enabled) return
+    if (privy.accessToken) {
+      setAuthToken(privy.accessToken)
+      setIsSignedIn(true)
+      setSignInExpiresAt(0)
+      return
+    }
+    if (account) applyStoredAuth(account)
+  }, [account, applyStoredAuth, privy.accessToken, privy.enabled])
 
   const switchToArc = useCallback(async () => {
-    const provider = getProvider()
+    const provider = await resolveProvider()
     await switchChain(provider, {
       chainId: ARC_CHAIN_ID,
       chainName: 'Arc Testnet',
@@ -466,10 +512,10 @@ export function ArcKitProvider({ children }: { children: ReactNode }) {
       blockExplorerUrls: [ARC_EXPLORER]
     })
     setChainId(ARC_CHAIN_ID)
-  }, [])
+  }, [resolveProvider])
 
   const switchToSepolia = useCallback(async () => {
-    const provider = getProvider()
+    const provider = await resolveProvider()
     await switchChain(provider, {
       chainId: SEPOLIA_CHAIN_ID,
       chainName: 'Ethereum Sepolia',
@@ -478,12 +524,16 @@ export function ArcKitProvider({ children }: { children: ReactNode }) {
       blockExplorerUrls: [SEPOLIA_EXPLORER]
     })
     setChainId(SEPOLIA_CHAIN_ID)
-  }, [])
+  }, [resolveProvider])
 
   const connect = useCallback(async () => {
     setIsConnecting(true)
     setLastError(null)
     try {
+      if (privy.enabled && (!privy.authenticated || !privy.account)) {
+        await privy.connect()
+        return
+      }
       await buildAdapter(true)
       await switchToArc()
     } catch (error) {
@@ -492,20 +542,25 @@ export function ArcKitProvider({ children }: { children: ReactNode }) {
     } finally {
       setIsConnecting(false)
     }
-  }, [buildAdapter, switchToArc])
+  }, [buildAdapter, privy, switchToArc])
 
   const signIn = useCallback(async () => {
     setIsConnecting(true)
     setLastError(null)
     try {
-      const provider = getProvider()
+      if (privy.enabled && (!privy.authenticated || !privy.account)) {
+        await privy.connect()
+        return
+      }
+      const provider = await resolveProvider()
       const result = account && adapter ? { adapter, address: account } : await buildAdapter(true)
       await switchToArc()
       const auth = await signInWallet(provider, result.address)
       saveStoredSignIn(auth)
+      const privyToken = await privy.refreshAccessToken()
       setIsSignedIn(true)
       setAuthSignature(auth.signature)
-      setAuthToken(auth.token)
+      setAuthToken(privyToken ?? auth.token)
       setSignInExpiresAt(auth.expiresAt)
     } catch (error) {
       setLastError(normalizeError(error))
@@ -513,15 +568,16 @@ export function ArcKitProvider({ children }: { children: ReactNode }) {
     } finally {
       setIsConnecting(false)
     }
-  }, [account, adapter, buildAdapter, switchToArc])
+  }, [account, adapter, buildAdapter, privy, resolveProvider, switchToArc])
 
   const signOut = useCallback(() => {
     clearStoredSignIn(account)
+    void privy.logout()
     setIsSignedIn(false)
     setAuthSignature(null)
     setAuthToken(null)
     setSignInExpiresAt(0)
-  }, [account])
+  }, [account, privy])
 
   const readyAdapter = useCallback(async () => {
     await switchToArc()
@@ -606,7 +662,7 @@ export function ArcKitProvider({ children }: { children: ReactNode }) {
         `Wallet send ${symbol} to ${to.slice(0, 10)}...`,
         async () => {
           await switchToArc()
-          const provider = getProvider()
+          const provider = await resolveProvider()
           const from = account ?? (await requestAccounts(provider))
           const hash = (await provider.request({
             method: 'eth_sendTransaction',
@@ -618,7 +674,7 @@ export function ArcKitProvider({ children }: { children: ReactNode }) {
       if (!tracked.value) throw new Error('Wallet send result kosong.')
       return tracked.value
     },
-    [account, switchToArc, track]
+    [account, resolveProvider, switchToArc, track]
   )
 
   const sendNativeWallet = useCallback(
@@ -627,7 +683,7 @@ export function ArcKitProvider({ children }: { children: ReactNode }) {
       if (value <= 0n) throw new Error('Amount must be greater than zero.')
       const tracked = await track('send', `Wallet native send to ${to.slice(0, 10)}...`, async () => {
         await switchToArc()
-        const provider = getProvider()
+        const provider = await resolveProvider()
         const from = account ?? (await requestAccounts(provider))
         const hash = (await provider.request({
           method: 'eth_sendTransaction',
@@ -638,7 +694,7 @@ export function ArcKitProvider({ children }: { children: ReactNode }) {
       if (!tracked.value) throw new Error('Wallet native send result kosong.')
       return tracked.value
     },
-    [account, switchToArc, track]
+    [account, resolveProvider, switchToArc, track]
   )
 
   const bridgeUsdc = useCallback(
@@ -702,7 +758,7 @@ export function ArcKitProvider({ children }: { children: ReactNode }) {
 
       const tracked = await track('deploy', `Deploy ${trimmedSymbol}`, async () => {
         await readyAdapter()
-        const provider = getProvider()
+        const provider = await resolveProvider()
         const from = account ?? (await requestAccounts(provider))
         const hash = (await provider.request({
           method: 'eth_sendTransaction',
@@ -730,7 +786,7 @@ export function ArcKitProvider({ children }: { children: ReactNode }) {
       })
       return tracked.value
     },
-    [account, addToken, readyAdapter, track]
+    [account, addToken, readyAdapter, resolveProvider, track]
   )
 
   const value = useMemo(
@@ -742,6 +798,12 @@ export function ArcKitProvider({ children }: { children: ReactNode }) {
       isSignedIn,
       authSignature,
       authToken,
+      privyEnabled: privy.enabled,
+      privyAuthenticated: privy.authenticated,
+      privyServerVerified: privy.serverVerified,
+      privyServerAuthError: privy.serverAuthError,
+      privyUserId: privy.userId,
+      walletLabel: privy.walletLabel,
       signInExpiresAt,
       lastError,
       connect,
@@ -769,6 +831,12 @@ export function ArcKitProvider({ children }: { children: ReactNode }) {
       isSignedIn,
       isConnecting,
       lastError,
+      privy.authenticated,
+      privy.enabled,
+      privy.serverAuthError,
+      privy.serverVerified,
+      privy.userId,
+      privy.walletLabel,
       sendErc20Wallet,
       sendNativeWallet,
       signIn,

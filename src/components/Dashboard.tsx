@@ -1,5 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query'
-import { ArrowLeftRight, RefreshCw, WalletCards } from 'lucide-react'
+import { ArrowLeftRight, Copy, RefreshCw, ShieldCheck, WalletCards } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { formatUnits, type Address } from 'viem'
 import { useBalance, useReadContract } from 'wagmi'
@@ -8,6 +8,7 @@ import { ARC_CHAIN_ID, SEPOLIA_CHAIN_ID, txUrl } from '../lib/arc'
 import { erc20Abi } from '../lib/contracts'
 import { EURC_TOKEN, SEPOLIA_USDC_TOKEN, USDC_TOKEN } from '../lib/tokens'
 import { useAppStore, type Token } from '../store/useAppStore'
+import { useArcAppKit } from '../hooks/useArcAppKit'
 import { Button } from './ui/Button'
 import { Panel } from './ui/Panel'
 
@@ -137,6 +138,15 @@ function TokenBalance({
 export function Dashboard() {
   const queryClient = useQueryClient()
   const [refreshing, setRefreshing] = useState(false)
+  const {
+    authToken,
+    privyAuthenticated,
+    privyEnabled,
+    privyServerAuthError,
+    privyServerVerified,
+    privyUserId,
+    walletLabel
+  } = useArcAppKit()
   const txHistory = useAppStore((state) => state.txHistory)
   const removeTx = useAppStore((state) => state.removeTx)
   const clearTxHistory = useAppStore((state) => state.clearTxHistory)
@@ -161,6 +171,15 @@ export function Dashboard() {
     if (!txHistory.some((tx) => tx.status === 'success')) return
     void refreshBalances()
   }, [refreshBalances, txHistory, txSignal])
+
+  const copyBearer = useCallback(async () => {
+    if (!authToken) return
+    await navigator.clipboard.writeText(`Bearer ${authToken}`)
+  }, [authToken])
+
+  const maskedToken = authToken
+    ? `${authToken.slice(0, 10)}...${authToken.slice(-8)}`
+    : 'not issued'
 
   return (
     <Panel className="animate-reveal">
@@ -194,6 +213,61 @@ export function Dashboard() {
               <RefreshCw className={refreshing ? 'h-4 w-4 animate-spin' : 'h-4 w-4'} />
               {refreshing ? 'Sync' : 'Refresh'}
             </Button>
+          </div>
+        </div>
+
+        <div className="border-4 border-quantum-black bg-white p-3 font-mono text-[11px] uppercase shadow-[5px_5px_0_#111]">
+          <div className="mb-2 flex items-center gap-2 text-quantum-purple">
+            <ShieldCheck className="h-4 w-4" />
+            Privy Session
+          </div>
+          <div className="grid gap-2">
+            <div className="flex justify-between gap-3">
+              <span className="text-quantum-black/55">Mode</span>
+              <b className={privyEnabled ? 'text-quantum-green' : 'text-quantum-red'}>
+                {privyEnabled ? 'enabled' : 'fallback'}
+              </b>
+            </div>
+            <div className="flex justify-between gap-3">
+              <span className="text-quantum-black/55">Login</span>
+              <b className={privyAuthenticated ? 'text-quantum-green' : 'text-quantum-red'}>
+                {privyAuthenticated ? walletLabel || 'active' : 'off'}
+              </b>
+            </div>
+            <div className="flex justify-between gap-3">
+              <span className="text-quantum-black/55">Server Verify</span>
+              <b
+                className={
+                  privyServerVerified
+                    ? 'text-quantum-green'
+                    : privyServerVerified === false
+                      ? 'text-quantum-red'
+                      : 'text-quantum-black/55'
+                }
+              >
+                {privyServerVerified === null ? 'standby' : privyServerVerified ? 'valid' : 'miss'}
+              </b>
+            </div>
+            <div className="truncate text-quantum-black/55">
+              USER {privyUserId ?? 'none'}
+            </div>
+            <div className="grid grid-cols-[1fr_auto] gap-2">
+              <div className="truncate border-4 border-quantum-black bg-quantum-paper px-2 py-1">
+                {maskedToken}
+              </div>
+              <Button
+                variant="cyan"
+                className="min-h-8 px-2 py-1 text-base"
+                onClick={() => void copyBearer()}
+                disabled={!authToken}
+              >
+                <Copy className="h-4 w-4" />
+                Copy
+              </Button>
+            </div>
+            {privyServerAuthError ? (
+              <div className="text-quantum-red">{privyServerAuthError}</div>
+            ) : null}
           </div>
         </div>
 

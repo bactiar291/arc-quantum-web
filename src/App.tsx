@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Dashboard } from './components/Dashboard'
 import { Header } from './components/Header'
 import { IntroGate } from './components/IntroGate'
+import { PrivyAppProvider } from './components/PrivyAppProvider'
 import { QuantumVisual } from './components/QuantumVisual'
 import { StatusBar } from './components/StatusBar'
 import { BridgePanel } from './components/panels/BridgePanel'
@@ -69,11 +70,11 @@ function Shell() {
                 </div>
                 <div className="mt-1 flex items-center gap-2 font-mono text-xs uppercase text-quantum-black/60">
                   <Terminal className="h-4 w-4 text-quantum-cyan" />
-                  Arc Testnet AppKit console / public RPC
+                  Privy login / Circle AppKit / public RPC
                 </div>
               </div>
               <div className="border-4 border-quantum-black bg-quantum-green px-3 py-2 font-mono text-xs uppercase text-quantum-black shadow-[5px_5px_0_#111]">
-                Circle App Kit / Wallet Gas
+                Privy Auth / Wallet Gas
               </div>
             </div>
 
@@ -111,8 +112,10 @@ function Shell() {
 
 export default function App() {
   return (
-    <ArcKitProvider>
-      <Shell />
-    </ArcKitProvider>
+    <PrivyAppProvider>
+      <ArcKitProvider>
+        <Shell />
+      </ArcKitProvider>
+    </PrivyAppProvider>
   )
 }
