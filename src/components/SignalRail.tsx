@@ -7,7 +7,6 @@ import { Panel } from './ui/Panel'
 const lanes = [
   ['SWAP', 'quote engine', 'bg-quantum-cyan'],
   ['SEND', 'token vector', 'bg-quantum-green'],
-  ['BRIDGE', 'cctp route', 'bg-quantum-purple'],
   ['FAUCET', 'fuel link', 'bg-quantum-yellow'],
   ['DEPLOY', 'bytecode forge', 'bg-quantum-red']
 ] as const

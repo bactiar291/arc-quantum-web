@@ -1,7 +1,6 @@
 import {
   Activity,
   Boxes,
-  GitBranchPlus,
   Radio,
   Rocket,
   Send,
@@ -15,7 +14,7 @@ import * as THREE from 'three'
 import { useAppStore, type Transaction } from '../store/useAppStore'
 import { Panel } from './ui/Panel'
 
-export type ReactorTab = 'swap' | 'send' | 'bridge' | 'faucet' | 'deploy'
+export type ReactorTab = 'swap' | 'send' | 'faucet' | 'deploy'
 type ReactorStatus = 'idle' | 'pending' | 'success' | 'error'
 
 interface ModeConfig {
@@ -44,14 +43,6 @@ const modeConfig: Record<ReactorTab, ModeConfig> = {
     pulse: 'bg-quantum-green',
     telemetry: ['TO', 'VALUE', 'GAS', 'HASH']
   },
-  bridge: {
-    title: 'BRIDGE TUNNEL',
-    label: 'SEPOLIA / ARC LINK',
-    icon: GitBranchPlus,
-    colors: ['#8a5cf6', '#00e5ff', '#ffd60a'],
-    pulse: 'bg-quantum-purple',
-    telemetry: ['SRC', 'DST', 'CCTP', 'FINAL']
-  },
   faucet: {
     title: 'FAUCET STREAM',
     label: 'TESTNET FUEL',
@@ -72,7 +63,6 @@ const modeConfig: Record<ReactorTab, ModeConfig> = {
 
 function matchesMode(mode: ReactorTab, tx: Transaction) {
   const summary = tx.summary.toLowerCase()
-  if (mode === 'bridge') return tx.kind === 'bridge' || summary.includes('bridge')
   if (mode === 'send') return tx.kind === 'send' && !summary.includes('bridge')
   if (mode === 'swap') return tx.kind === 'swap' || summary.includes('swap')
   if (mode === 'deploy') return tx.kind === 'deploy'
@@ -88,7 +78,6 @@ function statusTone(status: ReactorStatus) {
 
 function makeCoreGeometry(mode: ReactorTab) {
   if (mode === 'swap') return new THREE.TorusKnotGeometry(0.78, 0.22, 150, 18, 2, 3)
-  if (mode === 'bridge') return new THREE.TorusGeometry(0.95, 0.16, 24, 180)
   if (mode === 'deploy') return new THREE.IcosahedronGeometry(0.98, 2)
   if (mode === 'send') return new THREE.OctahedronGeometry(1.05, 2)
   return new THREE.SphereGeometry(0.92, 42, 28)
@@ -377,7 +366,7 @@ export function ProtocolMatrix({ activeTab }: { activeTab: ReactorTab }) {
         </div>
       </div>
 
-      <div className="grid gap-3 lg:grid-cols-5">
+      <div className="grid gap-3 lg:grid-cols-4">
         {modes.map(([mode, config], index) => {
           const Icon = config.icon
           const active = mode === activeTab

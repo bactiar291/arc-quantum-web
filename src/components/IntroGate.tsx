@@ -1,4 +1,4 @@
-import { ArrowRight, GitBranchPlus, Send, ShieldCheck, Shuffle } from 'lucide-react'
+import { ArrowRight, Rocket, Send, ShieldCheck, Shuffle } from 'lucide-react'
 
 import { QuantumLogo } from './QuantumLogo'
 import { Button } from './ui/Button'
@@ -9,8 +9,8 @@ interface IntroGateProps {
 
 const features = [
   { label: 'Swap', value: 'USDC <-> EURC', icon: Shuffle, color: 'text-quantum-cyan' },
-  { label: 'Bridge', value: 'Sepolia <-> Arc', icon: GitBranchPlus, color: 'text-quantum-green' },
   { label: 'Send', value: 'Stable transfer', icon: Send, color: 'text-quantum-orange' },
+  { label: 'Deploy', value: 'Random ERC20', icon: Rocket, color: 'text-quantum-green' },
   { label: 'Sign', value: 'Wallet verify', icon: ShieldCheck, color: 'text-quantum-purple' }
 ]
 
@@ -30,7 +30,7 @@ export function IntroGate({ onEnter }: IntroGateProps) {
               ARC QUANTUM LAB
             </h1>
             <p className="mt-8 max-w-2xl border-4 border-quantum-black bg-white p-5 font-mono text-sm uppercase leading-6 text-quantum-ink shadow-[7px_7px_0_#111]">
-              Swap, bridge, send, deploy random tokens. One EVM wallet and one
+              Swap, send, deploy random tokens, and faucet access. One EVM wallet and one
               clear signer path for every action.
             </p>
           </div>

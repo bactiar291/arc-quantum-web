@@ -1,4 +1,4 @@
-import { GitBranchPlus, Rocket, Send, Shuffle, Waves } from 'lucide-react'
+import { Rocket, Send, Shuffle, Waves } from 'lucide-react'
 import { useState } from 'react'
 
 import type { ReactorTab } from './components/ActionReactor'
@@ -7,7 +7,6 @@ import { Header } from './components/Header'
 import { IntroGate } from './components/IntroGate'
 import { PrivyAppProvider } from './components/PrivyAppProvider'
 import { StatusBar } from './components/StatusBar'
-import { BridgePanel } from './components/panels/BridgePanel'
 import { DeployPanel } from './components/panels/DeployPanel'
 import { FaucetPanel } from './components/panels/FaucetPanel'
 import { OfficialSwapPanel } from './components/panels/OfficialSwapPanel'
@@ -23,14 +22,12 @@ type TabId = ReactorTab
 const tabs: Array<{ id: TabId; label: string; icon: typeof Shuffle }> = [
   { id: 'swap', label: 'Swap', icon: Shuffle },
   { id: 'send', label: 'Send', icon: Send },
-  { id: 'bridge', label: 'Bridge', icon: GitBranchPlus },
   { id: 'faucet', label: 'Faucet', icon: Waves },
   { id: 'deploy', label: 'Deploy', icon: Rocket }
 ]
 
 function ActivePanel({ tab }: { tab: TabId }) {
   if (tab === 'send') return <StableSendPanel />
-  if (tab === 'bridge') return <BridgePanel />
   if (tab === 'faucet') return <FaucetPanel />
   if (tab === 'deploy') return <DeployPanel />
   return <OfficialSwapPanel />
@@ -76,7 +73,7 @@ function Shell() {
               </div>
             </div>
 
-            <nav className="scrollbar-none grid grid-cols-5 gap-2 overflow-x-auto pb-1">
+            <nav className="scrollbar-none grid grid-cols-4 gap-2 overflow-x-auto pb-1">
               {tabs.map((tab) => {
                 const Icon = tab.icon
                 return (
