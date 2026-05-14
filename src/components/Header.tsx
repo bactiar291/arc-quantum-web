@@ -1,6 +1,7 @@
-import { Cpu, PlugZap, Terminal } from 'lucide-react'
+import { PlugZap, ShieldCheck, Terminal } from 'lucide-react'
 
 import { useArcAppKit } from '../hooks/useArcAppKit'
+import { QuantumLogo } from './QuantumLogo'
 import { Button } from './ui/Button'
 
 function shortAddress(address: string) {
@@ -8,22 +9,20 @@ function shortAddress(address: string) {
 }
 
 export function Header() {
-  const { account, connect, isConnecting, chainId } = useArcAppKit()
+  const { account, connect, isConnecting, isSignedIn, chainId } = useArcAppKit()
 
   return (
-    <header className="sticky top-0 z-30 border-b-2 border-white bg-quantum-black/95 px-4 py-3 backdrop-blur md:px-6">
+    <header className="sticky top-0 z-30 border-b-2 border-white bg-quantum-black/92 px-4 py-3 backdrop-blur md:px-6">
       <div className="mx-auto flex max-w-[1520px] flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div className="flex items-center gap-3">
-          <div className="grid h-12 w-12 place-items-center border-2 border-white bg-quantum-yellow text-black shadow-[4px_4px_0_#38DFF4]">
-            <Cpu className="h-7 w-7" />
-          </div>
+          <QuantumLogo size="sm" className="h-14 w-14" />
           <div>
             <h1 className="font-display text-4xl leading-none tracking-normal md:text-5xl">
               ARC QUANTUM GAS
             </h1>
             <div className="flex items-center gap-2 font-mono text-[11px] uppercase text-quantum-cyan">
               <Terminal className="h-3.5 w-3.5" />
-              App Kit wallet signer / ZeroDev sponsor env
+              App Kit signer / wallet gas active
             </div>
           </div>
         </div>
@@ -31,9 +30,12 @@ export function Header() {
           <div className="border-2 border-white bg-black px-3 py-2 font-mono text-[11px] uppercase text-white/70">
             CHAIN <b className="text-quantum-cyan">{chainId || 'OFF'}</b>
           </div>
+          <div className="border-2 border-white bg-black px-3 py-2 font-mono text-[11px] uppercase text-white/70">
+            SIGN <b className={isSignedIn ? 'text-quantum-green' : 'text-quantum-orange'}>{isSignedIn ? 'LOCKED' : 'REQ'}</b>
+          </div>
           <Button onClick={connect} disabled={isConnecting} className="min-w-44">
-            <PlugZap className="h-5 w-5" />
-            {account ? shortAddress(account) : isConnecting ? 'Connecting' : 'Connect'}
+            {isSignedIn ? <ShieldCheck className="h-5 w-5" /> : <PlugZap className="h-5 w-5" />}
+            {account ? shortAddress(account) : isConnecting ? 'Signing In' : 'Sign In'}
           </Button>
         </div>
       </div>

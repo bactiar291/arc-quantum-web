@@ -79,7 +79,7 @@ export function StableSendPanel() {
 
         {!isConnected ? (
           <Button className="w-full" onClick={connect} disabled={isConnecting}>
-            Connect Arc Wallet
+            Sign In Arc Wallet
           </Button>
         ) : (
           <Button className="w-full" onClick={run} disabled={!valid || !amount || busy}>

@@ -1,4 +1,4 @@
-import { Fuel, KeyRound, ShieldCheck } from 'lucide-react'
+import { Fuel, KeyRound, ShieldCheck, TriangleAlert } from 'lucide-react'
 
 import {
   envStatus,
@@ -27,7 +27,7 @@ function StatusRow({
 }
 
 export function GasPanel() {
-  const ready =
+  const aaPrepared =
     envStatus.circleKit &&
     envStatus.zeroDevProject &&
     envStatus.zeroDevPasskey &&
@@ -62,7 +62,7 @@ export function GasPanel() {
           ok={envStatus.zeroDevRpc}
         />
 
-        <div className="grid gap-3 md:grid-cols-2">
+        <div className="grid gap-3 md:grid-cols-3">
           <div className="border-2 border-white bg-black p-4">
             <ShieldCheck className="mb-3 h-7 w-7 text-quantum-green" />
             <div className="font-display text-3xl">APP KIT</div>
@@ -71,21 +71,28 @@ export function GasPanel() {
             </div>
           </div>
           <div className="border-2 border-white bg-black p-4">
-            <KeyRound className="mb-3 h-7 w-7 text-quantum-yellow" />
+            <KeyRound className="mb-3 h-7 w-7 text-quantum-purple" />
             <div className="font-display text-3xl">ZERODEV</div>
             <div className="font-mono text-xs uppercase text-white/55">
               Env configured. AA sponsor execution not wired yet.
             </div>
           </div>
+          <div className="border-2 border-white bg-black p-4">
+            <TriangleAlert className="mb-3 h-7 w-7 text-quantum-orange" />
+            <div className="font-display text-3xl">SECURITY</div>
+            <div className="font-mono text-xs uppercase text-white/55">
+              Kit key stays server-side through fixed Circle proxy.
+            </div>
+          </div>
         </div>
 
-        <div className="border-2 border-quantum-yellow bg-black p-3 font-mono text-xs uppercase leading-5 text-quantum-yellow">
-          Sponsor gas needs smart account/session execution. Current swap uses
-          Circle App Kit wallet signer, so MetaMask popup is expected.
+        <div className="border-2 border-quantum-orange bg-black p-3 font-mono text-xs uppercase leading-5 text-quantum-orange">
+          Sponsor gas needs ZeroDev smart-account execution. Current swap/bridge/send
+          uses Circle App Kit wallet signer, so MetaMask popup is expected.
         </div>
 
-        <Button variant={ready ? 'ghost' : 'red'} className="w-full" disabled>
-          {ready ? 'Wallet Gas Active' : 'Gas Env Missing'}
+        <Button variant={aaPrepared ? 'orange' : 'red'} className="w-full" disabled>
+          {aaPrepared ? 'AA Env Prepared / Wallet Gas Live' : 'AA Env Missing / Wallet Gas Live'}
         </Button>
       </div>
     </Panel>

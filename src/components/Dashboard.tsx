@@ -1,4 +1,6 @@
-import { ArrowLeftRight, WalletCards } from 'lucide-react'
+import { useQueryClient } from '@tanstack/react-query'
+import { ArrowLeftRight, RefreshCw, WalletCards } from 'lucide-react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { formatUnits, type Address } from 'viem'
 import { useBalance, useReadContract } from 'wagmi'
 
@@ -65,7 +67,11 @@ function NativeBalance({
   const { data, isLoading, error } = useBalance({
     address: owner,
     chainId,
-    query: { enabled: Boolean(owner) }
+    query: {
+      enabled: Boolean(owner),
+      refetchInterval: owner ? 4000 : false,
+      refetchOnWindowFocus: true
+    }
   })
 
   const value = !owner
@@ -100,7 +106,11 @@ function TokenBalance({
     functionName: 'balanceOf',
     args: owner ? [owner] : undefined,
     chainId,
-    query: { enabled: Boolean(owner) }
+    query: {
+      enabled: Boolean(owner),
+      refetchInterval: owner ? 4000 : false,
+      refetchOnWindowFocus: true
+    }
   })
 
   const value = !owner
@@ -125,10 +135,32 @@ function TokenBalance({
 }
 
 export function Dashboard() {
+  const queryClient = useQueryClient()
+  const [refreshing, setRefreshing] = useState(false)
   const txHistory = useAppStore((state) => state.txHistory)
   const removeTx = useAppStore((state) => state.removeTx)
   const clearTxHistory = useAppStore((state) => state.clearTxHistory)
   const ownerAddress = useAppStore((state) => state.userAddress)
+  const deployedTokens = useAppStore((state) => state.deployedTokens)
+  const pendingCount = txHistory.filter((tx) => tx.status === 'pending').length
+  const txSignal = useMemo(
+    () => txHistory.map((tx) => `${tx.id}:${tx.status}`).join('|'),
+    [txHistory]
+  )
+
+  const refreshBalances = useCallback(async () => {
+    setRefreshing(true)
+    try {
+      await queryClient.invalidateQueries()
+    } finally {
+      window.setTimeout(() => setRefreshing(false), 350)
+    }
+  }, [queryClient])
+
+  useEffect(() => {
+    if (!txHistory.some((tx) => tx.status === 'success')) return
+    void refreshBalances()
+  }, [refreshBalances, txHistory, txSignal])
 
   return (
     <Panel className="animate-reveal">
@@ -145,6 +177,23 @@ export function Dashboard() {
           </div>
           <div className="truncate text-white/55">
             {ownerAddress ?? 'connect wallet to read balances'}
+          </div>
+          <div className="mt-3 grid gap-2 sm:grid-cols-[1fr_auto]">
+            <div className="border-2 border-white bg-quantum-panel px-3 py-2 text-white/65">
+              REFRESH QUEUE{' '}
+              <b className={pendingCount ? 'text-quantum-yellow' : 'text-quantum-green'}>
+                {pendingCount ? `${pendingCount} PENDING` : 'READY'}
+              </b>
+            </div>
+            <Button
+              variant="cyan"
+              className="min-h-8 px-2 py-1 text-base"
+              onClick={() => void refreshBalances()}
+              disabled={refreshing}
+            >
+              <RefreshCw className={refreshing ? 'h-4 w-4 animate-spin' : 'h-4 w-4'} />
+              {refreshing ? 'Sync' : 'Refresh'}
+            </Button>
           </div>
         </div>
 
@@ -186,6 +235,15 @@ export function Dashboard() {
             owner={ownerAddress ?? undefined}
             token={EURC_TOKEN}
           />
+          {deployedTokens.slice(0, 4).map((token) => (
+            <TokenBalance
+              key={token.address}
+              chain="Arc"
+              chainId={ARC_CHAIN_ID}
+              owner={ownerAddress ?? undefined}
+              token={token}
+            />
+          ))}
         </div>
 
         <div className="space-y-2">

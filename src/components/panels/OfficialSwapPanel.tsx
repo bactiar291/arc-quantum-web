@@ -1,5 +1,5 @@
 import { ArrowDown, RefreshCw, Shuffle } from 'lucide-react'
-import { useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { useArcAppKit } from '../../hooks/useArcAppKit'
 import { EURC_TOKEN, USDC_TOKEN } from '../../lib/tokens'
@@ -16,49 +16,82 @@ export function OfficialSwapPanel() {
   const [quote, setQuote] = useState('')
   const [hash, setHash] = useState('')
   const [error, setError] = useState('')
-  const [busy, setBusy] = useState<'quote' | 'swap' | null>(null)
+  const [quoteBusy, setQuoteBusy] = useState(false)
+  const [swapBusy, setSwapBusy] = useState(false)
+  const quoteRequest = useRef(0)
   const { connect, estimateSwap, executeSwap, isConnected, isConnecting } =
     useArcAppKit()
 
   const tokenIn = direction === 'USDC_TO_EURC' ? USDC_TOKEN : EURC_TOKEN
   const tokenOut = direction === 'USDC_TO_EURC' ? EURC_TOKEN : USDC_TOKEN
-  const disabled = busy !== null || !amount
+  const trimmedAmount = amount.trim()
+  const validAmount = /^\d+(\.\d+)?$/.test(trimmedAmount) && Number(trimmedAmount) > 0
+  const disabled = swapBusy || !validAmount
 
   const flip = () => {
     setDirection((value) =>
       value === 'USDC_TO_EURC' ? 'EURC_TO_USDC' : 'USDC_TO_EURC'
     )
-    setQuote('')
+    setQuote('REFRESHING QUOTE...')
     setHash('')
     setError('')
   }
 
-  const runQuote = async () => {
-    setBusy('quote')
-    setQuote('')
+  const runQuote = useCallback(async () => {
+    if (!isConnected) {
+      setQuote('SIGN IN WALLET FOR LIVE QUOTE')
+      return
+    }
+    if (!validAmount) {
+      setQuote('TYPE VALID AMOUNT')
+      return
+    }
+    const requestId = quoteRequest.current + 1
+    quoteRequest.current = requestId
+    setQuoteBusy(true)
+    setQuote('REFRESHING QUOTE...')
     setError('')
     try {
-      const result = await estimateSwap({ amount, direction, slippageBps })
+      const result = await estimateSwap({ amount: trimmedAmount, direction, slippageBps })
+      if (requestId !== quoteRequest.current) return
       setQuote(`${result.estimatedOutput.amount} ${result.estimatedOutput.token}`)
     } catch (caught) {
+      if (requestId !== quoteRequest.current) return
       setError(caught instanceof Error ? caught.message : String(caught))
+      setQuote('QUOTE FAILED - RETRY')
     } finally {
-      setBusy(null)
+      if (requestId === quoteRequest.current) setQuoteBusy(false)
     }
-  }
+  }, [direction, estimateSwap, isConnected, slippageBps, trimmedAmount, validAmount])
+
+  useEffect(() => {
+    if (!isConnected) {
+      setQuote('SIGN IN WALLET FOR LIVE QUOTE')
+      return
+    }
+    if (!validAmount) {
+      setQuote('TYPE VALID AMOUNT')
+      return
+    }
+    setQuote('REFRESHING QUOTE...')
+    const timer = window.setTimeout(() => {
+      void runQuote()
+    }, 450)
+    return () => window.clearTimeout(timer)
+  }, [direction, isConnected, runQuote, slippageBps, validAmount])
 
   const runSwap = async () => {
-    setBusy('swap')
+    setSwapBusy(true)
     setHash('')
     setError('')
     try {
-      const result = await executeSwap({ amount, direction, slippageBps })
+      const result = await executeSwap({ amount: trimmedAmount, direction, slippageBps })
       setHash(result.txHash)
       if (result.amountOut) setQuote(`${result.amountOut} ${result.tokenOut}`)
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : String(caught))
     } finally {
-      setBusy(null)
+      setSwapBusy(false)
     }
   }
 
@@ -112,7 +145,12 @@ export function OfficialSwapPanel() {
               {tokenOut.address}
             </div>
             <div className="mt-3 border-2 border-white bg-black p-3 font-mono text-sm text-quantum-cyan">
-              {quote || 'QUOTE READY AFTER ESTIMATE'}
+              <div className={quoteBusy ? 'animate-pulse text-quantum-yellow' : ''}>
+                {quote || 'QUOTE AUTO REFRESHING'}
+              </div>
+              <div className="mt-1 text-[10px] uppercase text-white/40">
+                Updates after pair, amount, or slippage change.
+              </div>
             </div>
           </div>
         </div>
@@ -127,19 +165,19 @@ export function OfficialSwapPanel() {
             onChange={(event) => setSlippageBps(Number(event.target.value))}
             hint="50 = 0.5%"
           />
-          <Button variant="ghost" onClick={runQuote} disabled={disabled}>
-            <RefreshCw className="h-5 w-5" />
-            {busy === 'quote' ? 'Quoting' : 'Quote'}
+          <Button variant="ghost" onClick={() => void runQuote()} disabled={quoteBusy || disabled}>
+            <RefreshCw className={quoteBusy ? 'h-5 w-5 animate-spin' : 'h-5 w-5'} />
+            {quoteBusy ? 'Refreshing' : 'Refresh Quote'}
           </Button>
         </div>
 
         {!isConnected ? (
           <Button className="w-full" onClick={connect} disabled={isConnecting}>
-            Connect Arc Wallet
+            Sign In Arc Wallet
           </Button>
         ) : (
           <Button className="w-full" onClick={runSwap} disabled={disabled}>
-            {busy === 'swap' ? 'Swapping' : 'Swap Wallet Gas'}
+            {swapBusy ? 'Swapping' : 'Swap Wallet Gas'}
           </Button>
         )}
 

@@ -108,7 +108,7 @@ export function BridgePanel() {
 
         {!isConnected ? (
           <Button className="w-full" onClick={connect} disabled={isConnecting}>
-            Connect Wallet
+            Sign In Wallet
           </Button>
         ) : (
           <Button

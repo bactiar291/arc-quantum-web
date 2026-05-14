@@ -5,15 +5,17 @@
 @tailwind utilities;
 
 :root {
-  --bg-primary: #071412;
-  --bg-panel: #10231f;
-  --border: #fffceb;
-  --accent-yellow: #ffd84a;
-  --accent-cyan: #38dff4;
-  --accent-red: #ff6476;
-  --accent-green: #71f59b;
-  --text-primary: #fffceb;
-  --text-mono: #38dff4;
+  --bg-primary: #08111f;
+  --bg-panel: #101b2d;
+  --border: #fff9ed;
+  --accent-yellow: #ffd166;
+  --accent-cyan: #32d9ff;
+  --accent-red: #ff5578;
+  --accent-green: #6dffb1;
+  --accent-purple: #b884ff;
+  --accent-orange: #ff9f1c;
+  --text-primary: #fff9ed;
+  --text-mono: #32d9ff;
 }
 
 * {
@@ -28,7 +30,11 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
-  background: var(--bg-primary);
+  background:
+    linear-gradient(145deg, rgba(184, 132, 255, 0.15), transparent 34%),
+    linear-gradient(225deg, rgba(50, 217, 255, 0.14), transparent 38%),
+    linear-gradient(315deg, rgba(255, 159, 28, 0.1), transparent 44%),
+    var(--bg-primary);
   color: var(--text-primary);
   font-family: 'Space Mono', 'Courier New', monospace;
 }
@@ -55,8 +61,8 @@ select {
   inset: 0;
   z-index: 0;
   background-image:
-    linear-gradient(rgba(255, 252, 235, 0.08) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 252, 235, 0.08) 1px, transparent 1px);
+    linear-gradient(rgba(255, 249, 237, 0.09) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 249, 237, 0.09) 1px, transparent 1px);
   background-size: 32px 32px;
   mask-image: linear-gradient(to bottom, #000 0%, transparent 90%);
 }
@@ -73,8 +79,9 @@ select {
   z-index: -1;
   background: linear-gradient(
     135deg,
-    rgba(255, 216, 74, 0.12),
-    rgba(56, 223, 244, 0.08) 42%,
+    rgba(255, 209, 102, 0.13),
+    rgba(50, 217, 255, 0.09) 34%,
+    rgba(184, 132, 255, 0.1) 42%,
     transparent 42%
   );
 }
@@ -111,7 +118,7 @@ select {
 
 .input-quantum:focus {
   border-color: var(--accent-yellow);
-  box-shadow: 0 0 0 2px rgba(255, 216, 74, 0.38);
+  box-shadow: 0 0 0 2px rgba(255, 209, 102, 0.38);
 }
 
 .input-quantum:disabled {
@@ -137,7 +144,7 @@ select {
   background: linear-gradient(
     to bottom,
     transparent,
-    rgba(95, 200, 186, 0.16),
+    rgba(50, 217, 255, 0.18),
     transparent
   );
   animation: scan 2.4s linear infinite;
@@ -163,8 +170,8 @@ select {
   position: absolute;
   inset: 0;
   border: 4px solid #f3f0e8;
-  background: rgba(56, 223, 244, 0.18);
-  box-shadow: 0 0 24px rgba(56, 223, 244, 0.38) inset;
+  background: rgba(50, 217, 255, 0.18);
+  box-shadow: 0 0 24px rgba(50, 217, 255, 0.38) inset;
 }
 
 .quantum-cube span:nth-child(1) {
@@ -173,12 +180,12 @@ select {
 
 .quantum-cube span:nth-child(2) {
   transform: rotateY(90deg) translateZ(56px);
-  background: rgba(255, 216, 74, 0.2);
+  background: rgba(255, 209, 102, 0.2);
 }
 
 .quantum-cube span:nth-child(3) {
   transform: rotateX(90deg) translateZ(56px);
-  background: rgba(113, 245, 155, 0.16);
+  background: rgba(109, 255, 177, 0.16);
 }
 
 .orbit {
@@ -191,17 +198,108 @@ select {
 
 .orbit-a {
   transform: rotateX(72deg) rotateZ(20deg);
-  border-color: #ffd84a;
+  border-color: #ffd166;
 }
 
 .orbit-b {
   transform: rotateX(58deg) rotateY(56deg);
-  border-color: #38dff4;
+  border-color: #32d9ff;
 }
 
 .orbit-c {
   transform: rotateX(112deg) rotateY(20deg);
-  border-color: #71f59b;
+  border-color: #6dffb1;
+}
+
+.cyber-band {
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background:
+    repeating-linear-gradient(
+      116deg,
+      transparent 0 48px,
+      rgba(184, 132, 255, 0.08) 48px 50px,
+      transparent 50px 104px
+    ),
+    linear-gradient(90deg, rgba(255, 85, 120, 0.1), transparent 32%),
+    linear-gradient(270deg, rgba(255, 159, 28, 0.11), transparent 36%);
+}
+
+.quantum-logo-3d {
+  position: relative;
+  width: var(--logo-size, 52px);
+  aspect-ratio: 1;
+  transform-style: preserve-3d;
+  animation: logo3d 5s ease-in-out infinite;
+}
+
+.quantum-logo-3d span {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  border: 2px solid #fff9ed;
+  background: linear-gradient(135deg, #ffd166, #32d9ff 52%, #b884ff);
+  color: #05070d;
+  font-family: 'Bebas Neue', Impact, sans-serif;
+  font-size: calc(var(--logo-size, 52px) * 0.48);
+  line-height: 1;
+  box-shadow: 0 0 18px rgba(50, 217, 255, 0.45) inset;
+}
+
+.quantum-logo-3d span:nth-child(1) {
+  transform: translateZ(calc(var(--logo-size, 52px) * 0.2));
+}
+
+.quantum-logo-3d span:nth-child(2) {
+  transform: rotateY(90deg) translateZ(calc(var(--logo-size, 52px) * 0.2));
+  background: #ff9f1c;
+}
+
+.quantum-logo-3d span:nth-child(3) {
+  transform: rotateX(90deg) translateZ(calc(var(--logo-size, 52px) * 0.2));
+  background: #6dffb1;
+}
+
+.intro-scan {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.1), transparent),
+    repeating-linear-gradient(
+      0deg,
+      rgba(255, 255, 255, 0.04) 0 1px,
+      transparent 1px 7px
+    );
+}
+
+@keyframes scan {
+  0% {
+    transform: translateY(-110%);
+  }
+  100% {
+    transform: translateY(110%);
+  }
+}
+
+@keyframes float3d {
+  0%,
+  100% {
+    transform: translateY(0) rotateX(58deg) rotateZ(42deg);
+  }
+  50% {
+    transform: translateY(-10px) rotateX(58deg) rotateZ(50deg);
+  }
+}
+
+@keyframes logo3d {
+  0%,
+  100% {
+    transform: rotateX(-18deg) rotateY(28deg) rotateZ(-4deg);
+  }
+  50% {
+    transform: rotateX(-10deg) rotateY(42deg) rotateZ(4deg);
+  }
 }
 
 @media (max-width: 640px) {

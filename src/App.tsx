@@ -1,11 +1,13 @@
-import { Fuel, GitBranchPlus, Send, Shuffle, Terminal } from 'lucide-react'
+import { Fuel, GitBranchPlus, Rocket, Send, Shuffle, Terminal } from 'lucide-react'
 import { useState } from 'react'
 
 import { Dashboard } from './components/Dashboard'
 import { Header } from './components/Header'
+import { IntroGate } from './components/IntroGate'
 import { QuantumVisual } from './components/QuantumVisual'
 import { StatusBar } from './components/StatusBar'
 import { BridgePanel } from './components/panels/BridgePanel'
+import { DeployPanel } from './components/panels/DeployPanel'
 import { GasPanel } from './components/panels/GasPanel'
 import { OfficialSwapPanel } from './components/panels/OfficialSwapPanel'
 import { StableSendPanel } from './components/panels/StableSendPanel'
@@ -13,29 +15,46 @@ import { Button } from './components/ui/Button'
 import { Panel } from './components/ui/Panel'
 import { ArcKitProvider } from './hooks/useArcAppKit'
 
-type TabId = 'swap' | 'send' | 'bridge' | 'gas'
+type TabId = 'swap' | 'send' | 'bridge' | 'deploy' | 'gas'
 
 const tabs: Array<{ id: TabId; label: string; icon: typeof Shuffle }> = [
   { id: 'swap', label: 'Swap', icon: Shuffle },
   { id: 'send', label: 'Send', icon: Send },
   { id: 'bridge', label: 'Bridge', icon: GitBranchPlus },
+  { id: 'deploy', label: 'Deploy', icon: Rocket },
   { id: 'gas', label: 'Gas', icon: Fuel }
 ]
 
 function ActivePanel({ tab }: { tab: TabId }) {
   if (tab === 'send') return <StableSendPanel />
   if (tab === 'bridge') return <BridgePanel />
+  if (tab === 'deploy') return <DeployPanel />
   if (tab === 'gas') return <GasPanel />
   return <OfficialSwapPanel />
 }
 
 function Shell() {
+  const [entered, setEntered] = useState(
+    () => sessionStorage.getItem('arc-quantum-entered') === '1'
+  )
   const [activeTab, setActiveTab] = useState<TabId>('swap')
   const active = tabs.find((tab) => tab.id === activeTab) ?? tabs[0]
   const ActiveIcon = active.icon
 
+  if (!entered) {
+    return (
+      <IntroGate
+        onEnter={() => {
+          sessionStorage.setItem('arc-quantum-entered', '1')
+          setEntered(true)
+        }}
+      />
+    )
+  }
+
   return (
     <div className="min-h-screen overflow-x-hidden bg-quantum-black text-white">
+      <div className="cyber-band" />
       <div className="grid-noise" />
       <Header />
 
@@ -58,7 +77,7 @@ function Shell() {
               </div>
             </div>
 
-            <nav className="grid grid-cols-2 gap-3 md:grid-cols-4">
+            <nav className="grid grid-cols-2 gap-3 md:grid-cols-5">
               {tabs.map((tab) => {
                 const Icon = tab.icon
                 return (

@@ -6,19 +6,21 @@ export default {
     extend: {
       colors: {
         quantum: {
-          black: '#071412',
-          panel: '#10231F',
-          ink: '#FFFCEB',
-          yellow: '#FFD84A',
-          cyan: '#38DFF4',
-          red: '#FF6476',
-          green: '#71F59B'
+          black: '#08111F',
+          panel: '#101B2D',
+          ink: '#FFF9ED',
+          yellow: '#FFD166',
+          cyan: '#32D9FF',
+          red: '#FF5578',
+          green: '#6DFFB1',
+          purple: '#B884FF',
+          orange: '#FF9F1C'
         }
       },
       boxShadow: {
-        brutal: '5px 5px 0 #FFD84A',
-        brutalCyan: '5px 5px 0 #38DFF4',
-        brutalRed: '5px 5px 0 #FF6476'
+        brutal: '5px 5px 0 #FFD166',
+        brutalCyan: '5px 5px 0 #32D9FF',
+        brutalRed: '5px 5px 0 #FF5578'
       },
       fontFamily: {
         display: ['Bebas Neue', 'Impact', 'sans-serif'],
@@ -47,6 +49,10 @@ export default {
         float3d: {
           '0%, 100%': { transform: 'translateY(0) rotateX(58deg) rotateZ(42deg)' },
           '50%': { transform: 'translateY(-10px) rotateX(58deg) rotateZ(50deg)' }
+        },
+        logo3d: {
+          '0%, 100%': { transform: 'rotateX(-18deg) rotateY(28deg) rotateZ(-4deg)' },
+          '50%': { transform: 'rotateX(-10deg) rotateY(42deg) rotateZ(4deg)' }
         }
       },
       animation: {
@@ -54,7 +60,8 @@ export default {
         reveal: 'reveal 360ms ease-out both',
         pulseBorder: 'pulseBorder 1.8s ease-in-out infinite',
         glitch: 'glitch 420ms steps(2, end) infinite',
-        float3d: 'float3d 4s ease-in-out infinite'
+        float3d: 'float3d 4s ease-in-out infinite',
+        logo3d: 'logo3d 5s ease-in-out infinite'
       }
     }
   },

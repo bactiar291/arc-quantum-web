@@ -26,8 +26,10 @@ import {
 } from 'react'
 import {
   createPublicClient,
+  encodeDeployData,
   http,
   isAddress,
+  parseUnits,
   type Address,
   type EIP1193Provider,
   type Hex
@@ -40,9 +42,12 @@ import {
   SEPOLIA_CHAIN_ID,
   SEPOLIA_EXPLORER,
   SEPOLIA_RPC_URL,
+  arcPublicClient,
   arcTestnet,
   arcTransport
 } from '../lib/arc'
+import { quantumTokenBytecode } from '../lib/bytecode'
+import { quantumTokenAbi } from '../lib/contracts'
 import { CIRCLE_KIT_KEY } from '../lib/env'
 import { EURC_TOKEN } from '../lib/tokens'
 import { useAppStore } from '../store/useAppStore'
@@ -70,11 +75,24 @@ interface BridgeRequest {
   recipient?: Address
 }
 
+interface DeployRequest {
+  name: string
+  symbol: string
+  supply: string
+  decimals: number
+}
+
+interface DeployResult {
+  txHash: Hex
+  contractAddress: Address
+}
+
 interface ArcKitContextValue {
   account: Address | null
   chainId: number | null
   isConnected: boolean
   isConnecting: boolean
+  isSignedIn: boolean
   lastError: string | null
   connect: () => Promise<void>
   switchToArc: () => Promise<void>
@@ -82,6 +100,7 @@ interface ArcKitContextValue {
   executeSwap: (request: SwapRequest) => Promise<SwapResult>
   sendToken: (request: SendRequest) => Promise<BridgeStep>
   bridgeUsdc: (request: BridgeRequest) => Promise<BridgeResult>
+  deployToken: (request: DeployRequest) => Promise<DeployResult>
 }
 
 const ArcKitContext = createContext<ArcKitContextValue | null>(null)
@@ -131,6 +150,61 @@ async function requestAccounts(provider: EIP1193Provider) {
   return accounts[0]
 }
 
+async function signInWallet(provider: EIP1193Provider, address: Address) {
+  const looseProvider = provider as {
+    request: (args: { method: string; params?: unknown[] }) => Promise<unknown>
+  }
+  const bytes = crypto.getRandomValues(new Uint8Array(32))
+  const nonce = `0x${Array.from(bytes)
+    .map((byte) => byte.toString(16).padStart(2, '0'))
+    .join('')}` as Hex
+  const issuedAt = new Date().toISOString()
+  const typedData = {
+    domain: {
+      name: 'Arc Quantum Lab',
+      version: '1',
+      chainId: ARC_CHAIN_ID
+    },
+    types: {
+      EIP712Domain: [
+        { name: 'name', type: 'string' },
+        { name: 'version', type: 'string' },
+        { name: 'chainId', type: 'uint256' }
+      ],
+      SignIn: [
+        { name: 'wallet', type: 'address' },
+        { name: 'statement', type: 'string' },
+        { name: 'nonce', type: 'bytes32' },
+        { name: 'issuedAt', type: 'string' }
+      ]
+    },
+    primaryType: 'SignIn',
+    message: {
+      wallet: address,
+      statement: 'Lock this wallet for Arc Quantum Lab testnet actions.',
+      nonce,
+      issuedAt
+    }
+  }
+
+  try {
+    return (await provider.request({
+      method: 'eth_signTypedData_v4',
+      params: [address, JSON.stringify(typedData)]
+    })) as Hex
+  } catch (error) {
+    const code = (error as { code?: number }).code
+    if (code === 4001) throw error
+    return (await looseProvider.request({
+      method: 'personal_sign',
+      params: [
+        `Arc Quantum Lab sign in\nWallet: ${address}\nNonce: ${nonce}\nIssued: ${issuedAt}`,
+        address
+      ]
+    })) as Hex
+  }
+}
+
 async function currentChainId(provider: EIP1193Provider) {
   const value = (await provider.request({ method: 'eth_chainId' })) as string
   return Number.parseInt(value, 16)
@@ -175,14 +249,18 @@ export function ArcKitProvider({ children }: { children: ReactNode }) {
   const [account, setAccount] = useState<Address | null>(null)
   const [chainId, setChainId] = useState<number | null>(null)
   const [isConnecting, setIsConnecting] = useState(false)
+  const [isSignedIn, setIsSignedIn] = useState(false)
   const [lastError, setLastError] = useState<string | null>(null)
   const setWallet = useAppStore((state) => state.setWallet)
+  const addToken = useAppStore((state) => state.addToken)
   const track = useTrackedTx()
   const kit = useMemo(() => new AppKit(), [])
 
   const buildAdapter = useCallback(async () => {
     const provider = getProvider()
     const address = await requestAccounts(provider)
+    setIsSignedIn(false)
+    await signInWallet(provider, address)
     const nextAdapter = await createViemAdapterFromProvider({
       provider,
       capabilities: { addressContext: 'user-controlled' },
@@ -197,6 +275,7 @@ export function ArcKitProvider({ children }: { children: ReactNode }) {
     })
     setAdapter(nextAdapter)
     setAccount(address)
+    setIsSignedIn(true)
     setWallet(address, true)
     setChainId(await currentChainId(provider))
     return nextAdapter
@@ -352,27 +431,80 @@ export function ArcKitProvider({ children }: { children: ReactNode }) {
     [adapter, buildAdapter, kit, switchToArc, switchToSepolia, track]
   )
 
+  const deployToken = useCallback(
+    async ({ name, symbol, supply, decimals }: DeployRequest) => {
+      const trimmedName = name.trim()
+      const trimmedSymbol = symbol.trim().toUpperCase()
+      if (!trimmedName) throw new Error('Token name required.')
+      if (!trimmedSymbol) throw new Error('Token symbol required.')
+      if (decimals < 0 || decimals > 18) throw new Error('Decimals must be 0-18.')
+      const parsedSupply = parseUnits(supply || '0', decimals)
+      if (parsedSupply <= 0n) throw new Error('Supply must be greater than zero.')
+
+      const data = encodeDeployData({
+        abi: quantumTokenAbi,
+        bytecode: quantumTokenBytecode,
+        args: [trimmedName, trimmedSymbol, parsedSupply, decimals]
+      })
+
+      const tracked = await track('deploy', `Deploy ${trimmedSymbol}`, async () => {
+        await readyAdapter()
+        const provider = getProvider()
+        const from = account ?? (await requestAccounts(provider))
+        const hash = (await provider.request({
+          method: 'eth_sendTransaction',
+          params: [{ from, data, value: '0x0' }]
+        })) as Hex
+        const receipt = await arcPublicClient.waitForTransactionReceipt({ hash })
+        if (!receipt.contractAddress) throw new Error('Contract address missing.')
+        return {
+          hash,
+          value: {
+            txHash: hash,
+            contractAddress: receipt.contractAddress
+          }
+        }
+      })
+
+      if (!tracked.value) throw new Error('Deploy result kosong.')
+      addToken({
+        address: tracked.value.contractAddress,
+        name: trimmedName,
+        symbol: trimmedSymbol,
+        decimals,
+        createdAt: Date.now(),
+        txHash: tracked.value.txHash
+      })
+      return tracked.value
+    },
+    [account, addToken, readyAdapter, track]
+  )
+
   const value = useMemo(
     () => ({
       account,
       chainId,
       isConnected: Boolean(account),
       isConnecting,
+      isSignedIn,
       lastError,
       connect,
       switchToArc,
       estimateSwap,
       executeSwap,
       sendToken,
-      bridgeUsdc
+      bridgeUsdc,
+      deployToken
     }),
     [
       account,
       bridgeUsdc,
       chainId,
       connect,
+      deployToken,
       estimateSwap,
       executeSwap,
+      isSignedIn,
       isConnecting,
       lastError,
       sendToken,
