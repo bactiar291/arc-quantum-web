@@ -134,7 +134,7 @@ interface ArcKitContextValue {
   lastError: string | null
   connect: () => Promise<void>
   signIn: () => Promise<void>
-  signOut: () => void
+  signOut: () => Promise<void>
   switchToArc: () => Promise<void>
   estimateSwap: (request: SwapRequest) => Promise<SwapEstimate>
   executeSwap: (request: SwapRequest) => Promise<SwapResult>
@@ -545,9 +545,13 @@ export function ArcKitProvider({ children }: { children: ReactNode }) {
   const connect = useCallback(async () => {
     setIsConnecting(true)
     setLastError(null)
+    const wasManualDisconnect = isManualDisconnect()
     setManualDisconnect(false)
     try {
-      if (privy.enabled && (!privy.authenticated || !privy.account)) {
+      if (
+        privy.enabled &&
+        (wasManualDisconnect || !privy.ready || !privy.authenticated || !privy.account)
+      ) {
         await privy.connect()
         return
       }
@@ -586,11 +590,20 @@ export function ArcKitProvider({ children }: { children: ReactNode }) {
     }
   }, [account, adapter, buildAdapter, privy, resolveProvider, switchToArc])
 
-  const signOut = useCallback(() => {
+  const signOut = useCallback(async () => {
+    setIsConnecting(true)
+    setLastError(null)
     clearStoredSignIn(account)
     setManualDisconnect(true)
-    void privy.logout()
     resetWalletState()
+    sessionStorage.removeItem(PRIVY_ACCESS_TOKEN_STORAGE_KEY)
+    try {
+      await privy.logout()
+    } catch (error) {
+      setLastError(normalizeError(error))
+    } finally {
+      setIsConnecting(false)
+    }
   }, [account, privy, resetWalletState])
 
   const readyAdapter = useCallback(async () => {

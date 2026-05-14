@@ -74,7 +74,7 @@ export function Header() {
               {label}
             </Button>
           )}
-          {account ? (
+          {account || privyAuthenticated ? (
             <Button
               variant="red"
               onClick={signOut}
