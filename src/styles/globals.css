@@ -215,6 +215,116 @@ select {
   padding: 0 3px;
 }
 
+.quantum-busy {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background:
+    radial-gradient(circle at 50% 42%, rgba(0, 216, 255, 0.24), transparent 34%),
+    linear-gradient(135deg, rgba(255, 245, 0, 0.22), rgba(0, 216, 255, 0.18)),
+    rgba(255, 255, 255, 0.78);
+  backdrop-filter: blur(10px);
+}
+
+.quantum-busy-card {
+  width: min(92vw, 420px);
+  border: 3px solid var(--ink);
+  background: rgba(255, 255, 255, 0.94);
+  padding: 24px;
+  box-shadow: 8px 8px 0 var(--ink);
+  display: grid;
+  justify-items: center;
+}
+
+.quantum-loader-stage {
+  position: relative;
+  width: 190px;
+  height: 190px;
+  transform-style: preserve-3d;
+  perspective: 780px;
+  animation: quantum-loader-tilt 2.7s ease-in-out infinite alternate;
+}
+
+.quantum-loader-core {
+  position: absolute;
+  inset: 58px;
+  display: grid;
+  place-items: center;
+  border: 3px solid var(--ink);
+  background: var(--accent-cyan);
+  color: var(--ink);
+  box-shadow:
+    0 0 0 8px rgba(255, 245, 0, 0.4),
+    8px 8px 0 var(--ink);
+  transform: translateZ(48px);
+}
+
+.quantum-loader-orbit {
+  position: absolute;
+  inset: 28px;
+  border: 3px solid var(--ink);
+  border-radius: 999px;
+  box-shadow: 0 0 22px rgba(0, 216, 255, 0.38);
+}
+
+.quantum-loader-orbit-a {
+  animation: quantum-loader-spin-a 1.4s linear infinite;
+}
+
+.quantum-loader-orbit-b {
+  transform: rotateX(70deg) rotateZ(30deg);
+  animation: quantum-loader-spin-b 1.9s linear infinite;
+}
+
+.quantum-loader-orbit-c {
+  transform: rotateY(68deg) rotateZ(-18deg);
+  animation: quantum-loader-spin-c 2.2s linear infinite;
+}
+
+.quantum-loader-particle {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--ink);
+  background: var(--accent-yellow);
+  box-shadow: 3px 3px 0 var(--ink);
+}
+
+.quantum-loader-particle-a {
+  top: 20px;
+  left: 82px;
+  animation: quantum-loader-pulse 0.8s ease-in-out infinite alternate;
+}
+
+.quantum-loader-particle-b {
+  right: 16px;
+  top: 92px;
+  background: var(--accent-green);
+  animation: quantum-loader-pulse 1s ease-in-out infinite alternate-reverse;
+}
+
+.quantum-loader-particle-c {
+  bottom: 25px;
+  left: 34px;
+  background: var(--accent-purple);
+  animation: quantum-loader-pulse 1.2s ease-in-out infinite alternate;
+}
+
+.quantum-busy-yellow .quantum-loader-core {
+  background: var(--accent-yellow);
+}
+
+.quantum-busy-green .quantum-loader-core {
+  background: var(--accent-green);
+}
+
+.quantum-busy-purple .quantum-loader-core {
+  background: var(--accent-purple);
+}
+
 .compact-action-panel > div:first-child {
   border-bottom-width: 2px;
   margin-bottom: 10px;
@@ -782,6 +892,42 @@ select {
   }
   100% {
     transform: scaleY(1);
+  }
+}
+
+@keyframes quantum-loader-tilt {
+  from {
+    transform: rotateX(56deg) rotateZ(-14deg);
+  }
+  to {
+    transform: rotateX(62deg) rotateZ(18deg);
+  }
+}
+
+@keyframes quantum-loader-spin-a {
+  to {
+    transform: rotateZ(360deg);
+  }
+}
+
+@keyframes quantum-loader-spin-b {
+  to {
+    transform: rotateX(70deg) rotateZ(390deg);
+  }
+}
+
+@keyframes quantum-loader-spin-c {
+  to {
+    transform: rotateY(68deg) rotateZ(342deg);
+  }
+}
+
+@keyframes quantum-loader-pulse {
+  from {
+    transform: translateZ(0) scale(0.82);
+  }
+  to {
+    transform: translateZ(44px) scale(1.12);
   }
 }
 

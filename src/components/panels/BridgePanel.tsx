@@ -6,6 +6,7 @@ import { useArcAppKit } from '../../hooks/useArcAppKit'
 import { Button } from '../ui/Button'
 import { Input } from '../ui/Input'
 import { Panel } from '../ui/Panel'
+import { QuantumBusyOverlay } from '../ui/QuantumBusyOverlay'
 
 export function BridgePanel() {
   const [direction, setDirection] = useState<'SEPOLIA_TO_ARC' | 'ARC_TO_SEPOLIA'>(
@@ -61,6 +62,13 @@ export function BridgePanel() {
   }
 
   return (
+    <>
+    <QuantumBusyOverlay
+      active={busy}
+      title="Bridging USDC"
+      subtitle={`${fromChain} -> ${toChain} via Circle CCTP fast route`}
+      tone="yellow"
+    />
     <Panel className="compact-action-panel animate-reveal" shadow="yellow">
       <div className="mb-3 flex items-center gap-2 border-b-4 border-quantum-black pb-3 font-display text-3xl">
         <GitBranchPlus className="h-7 w-7 text-quantum-yellow" />
@@ -148,5 +156,6 @@ export function BridgePanel() {
         ) : null}
       </div>
     </Panel>
+    </>
   )
 }

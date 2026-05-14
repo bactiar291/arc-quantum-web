@@ -6,6 +6,7 @@ import { addressUrl } from '../../lib/arc'
 import { Button } from '../ui/Button'
 import { Input } from '../ui/Input'
 import { Panel } from '../ui/Panel'
+import { QuantumBusyOverlay } from '../ui/QuantumBusyOverlay'
 
 const adjectives = [
   'Neon',
@@ -81,6 +82,13 @@ export function DeployPanel() {
   }
 
   return (
+    <>
+    <QuantumBusyOverlay
+      active={busy}
+      title="Deploying Token"
+      subtitle={`${symbol || 'TOKEN'} bytecode broadcasting to Arc Testnet`}
+      tone="purple"
+    />
     <Panel className="compact-action-panel animate-reveal" shadow="red">
       <div className="mb-3 flex items-center gap-2 border-b-4 border-quantum-black pb-3 font-display text-3xl">
         <Rocket className="h-7 w-7 text-quantum-orange" />
@@ -170,5 +178,6 @@ export function DeployPanel() {
         </div>
       ) : null}
     </Panel>
+    </>
   )
 }

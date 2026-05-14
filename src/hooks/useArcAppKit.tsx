@@ -29,6 +29,7 @@ import {
   createPublicClient,
   encodeDeployData,
   encodeFunctionData,
+  formatUnits,
   http,
   isAddress,
   parseUnits,
@@ -60,6 +61,7 @@ import { useTrackedTx } from './useTrackedTx'
 type StableToken = 'USDC' | 'EURC'
 type SwapDirection = 'USDC_TO_EURC' | 'EURC_TO_USDC'
 type BridgeDirection = 'SEPOLIA_TO_ARC' | 'ARC_TO_SEPOLIA'
+type BridgeEstimate = Awaited<ReturnType<AppKit['estimateBridge']>>
 
 interface SwapRequest {
   amount: string
@@ -185,16 +187,38 @@ function bridgeHash(result: BridgeResult) {
   return step?.txHash?.startsWith('0x') ? (step.txHash as Hex) : undefined
 }
 
-function bridgeStepLabel(step: BridgeStep, index: number) {
-  const hash = step.txHash?.startsWith('0x') ? ` tx=${step.txHash.slice(0, 10)}...` : ''
-  const reason = step.errorMessage ? ` reason=${step.errorMessage}` : ''
-  return `${index + 1}. ${step.name}: ${step.state}${hash}${reason}`
+function bridgeFeeCap(estimate: BridgeEstimate) {
+  const fee = estimate.fees.reduce((total, item) => {
+    if (!item.amount) return total
+    try {
+      return total + parseUnits(item.amount, 6)
+    } catch {
+      return total
+    }
+  }, 0n)
+  if (fee <= 0n) return undefined
+  const buffered = fee + fee / 5n + 10_000n
+  return formatUnits(buffered, 6)
 }
 
-function assertBridgeSubmitted(result: BridgeResult) {
-  if (result.state !== 'error') return
+function bridgeStepLabel(step: BridgeStep, index: number) {
+  const hash = step.txHash?.startsWith('0x') ? ` tx=${step.txHash.slice(0, 10)}...` : ''
+  const category = step.errorCategory ? ` category=${step.errorCategory}` : ''
+  const reason = step.errorMessage ? ` reason=${step.errorMessage}` : ''
+  return `${index + 1}. ${step.name}: ${step.state}${category}${hash}${reason}`
+}
+
+function bridgeFailureMessage(result: BridgeResult) {
   const details = result.steps.map(bridgeStepLabel).join(' | ')
-  throw new Error(`Bridge failed before completion. ${details || 'No step details.'}`)
+  return `Bridge failed before completion. ${details || 'No step details.'}`
+}
+
+function isForwarderFallbackError(error: unknown) {
+  const message = error instanceof Error ? error.message : String(error)
+  if (/user_rejected|reject|denied|insufficient|balance|allowance|funds/i.test(message)) {
+    return false
+  }
+  return /forwarder|route|unsupported|not supported|maxFee|fee/i.test(message)
 }
 
 async function requestAccounts(provider: EIP1193Provider) {
@@ -765,14 +789,15 @@ export function ArcKitProvider({ children }: { children: ReactNode }) {
           direction === 'SEPOLIA_TO_ARC'
             ? BridgeChain.Arc_Testnet
             : BridgeChain.Ethereum_Sepolia
-        const result = await kit.bridge({
-          from: {
-            adapter: activeAdapter,
-            chain:
-              direction === 'SEPOLIA_TO_ARC'
-                ? BridgeChain.Ethereum_Sepolia
-                : BridgeChain.Arc_Testnet
-          },
+        const from = {
+          adapter: activeAdapter,
+          chain:
+            direction === 'SEPOLIA_TO_ARC'
+              ? BridgeChain.Ethereum_Sepolia
+              : BridgeChain.Arc_Testnet
+        } as const
+        const forwarderParams = {
+          from,
           to: {
             chain: destinationChain,
             recipientAddress: recipient,
@@ -781,10 +806,53 @@ export function ArcKitProvider({ children }: { children: ReactNode }) {
           amount,
           token: 'USDC',
           config: {
-            transferSpeed: TransferSpeed.FAST
+            transferSpeed: TransferSpeed.FAST,
+            batchTransactions: true
           }
-        })
-        assertBridgeSubmitted(result)
+        } as const
+        const standardParams = {
+          from: {
+            adapter: activeAdapter,
+            chain: from.chain
+          },
+          to: {
+            adapter: activeAdapter,
+            chain: destinationChain,
+            recipientAddress: recipient
+          },
+          amount,
+          token: 'USDC',
+          config: {
+            transferSpeed: TransferSpeed.FAST,
+            batchTransactions: true
+          }
+        } as const
+
+        let result: BridgeResult
+        try {
+          const estimate = await kit.estimateBridge(forwarderParams)
+          const maxFee = bridgeFeeCap(estimate)
+          result = await kit.bridge({
+            ...forwarderParams,
+            config: {
+              ...forwarderParams.config,
+              ...(maxFee ? { maxFee } : {})
+            }
+          })
+        } catch (error) {
+          if (!isForwarderFallbackError(error)) throw error
+          const estimate = await kit.estimateBridge(standardParams)
+          const maxFee = bridgeFeeCap(estimate)
+          result = await kit.bridge({
+            ...standardParams,
+            config: {
+              ...standardParams.config,
+              ...(maxFee ? { maxFee } : {})
+            }
+          })
+        }
+
+        if (result.state === 'error') throw new Error(bridgeFailureMessage(result))
         return { hash: bridgeHash(result), value: result }
       })
       if (!tracked.value) throw new Error('Bridge result kosong.')

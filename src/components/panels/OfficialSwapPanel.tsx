@@ -10,6 +10,7 @@ import { EURC_TOKEN, USDC_TOKEN } from '../../lib/tokens'
 import { Button } from '../ui/Button'
 import { Input } from '../ui/Input'
 import { Panel } from '../ui/Panel'
+import { QuantumBusyOverlay } from '../ui/QuantumBusyOverlay'
 
 type Direction = 'USDC_TO_EURC' | 'EURC_TO_USDC'
 
@@ -134,6 +135,13 @@ export function OfficialSwapPanel() {
   }
 
   return (
+    <>
+    <QuantumBusyOverlay
+      active={swapBusy}
+      title="Quantum Swap"
+      subtitle={`${tokenIn.symbol} -> ${tokenOut.symbol} executing on Arc Testnet`}
+      tone="cyan"
+    />
     <div className="mx-auto w-full max-w-[430px]">
       <Panel className="compact-action-panel animate-reveal" shadow="yellow">
         <div className="mb-3 flex items-center justify-between">
@@ -272,5 +280,6 @@ export function OfficialSwapPanel() {
         ) : null}
       </Panel>
     </div>
+    </>
   )
 }
