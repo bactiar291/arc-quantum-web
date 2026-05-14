@@ -25,6 +25,9 @@ function readPrivyAccessToken() {
 if (nativeFetch) {
   globalThis.fetch = ((input: RequestInfo | URL, init?: RequestInit) => {
     const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url
+    if (url.startsWith('https://api.circle.com/v1/stablecoinKits/logs')) {
+      return Promise.resolve(new Response(null, { status: 204, statusText: 'No Content' }))
+    }
     if (url.startsWith('https://api.circle.com/v1/stablecoinKits/')) {
       const nextUrl = url.replace(
         'https://api.circle.com/v1/stablecoinKits/',

@@ -14,7 +14,7 @@
         { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=()" },
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://auth.privy.io https://cdn.jsdelivr.net; connect-src 'self' https://*.privy.io https://api.circle.com https://rpc.testnet.arc.network https://ethereum-sepolia-rpc.publicnode.com wss://*.privy.io; frame-src https://auth.privy.io; img-src 'self' data: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com"
+          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://auth.privy.io https://cdn.jsdelivr.net; connect-src 'self' https://*.privy.io https://api.circle.com https://iris-api.circle.com https://iris-api-sandbox.circle.com https://gateway-api.circle.com https://rpc.testnet.arc.network https://ethereum-sepolia-rpc.publicnode.com wss://*.privy.io; frame-src https://auth.privy.io; img-src 'self' data: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com"
         },
         { "key": "Strict-Transport-Security", "value": "max-age=31536000; includeSubDomains" }
       ]

@@ -254,6 +254,13 @@ function bridgeHash(result: BridgeResult) {
   return step?.txHash?.startsWith('0x') ? (step.txHash as Hex) : undefined
 }
 
+function bridgeBurnHash(result: BridgeResult) {
+  const step = [...result.steps]
+    .reverse()
+    .find((item) => /burn|deposit/i.test(item.name) && item.txHash?.startsWith('0x'))
+  return step?.txHash as Hex | undefined
+}
+
 function bridgeFeeCap(estimate: BridgeEstimate) {
   const fee = estimate.fees.reduce((total, item) => {
     if (!item.amount) return total
@@ -277,6 +284,19 @@ function bridgeStepLabel(step: BridgeStep, index: number) {
 
 function bridgeFailureMessage(result: BridgeResult) {
   const details = result.steps.map(bridgeStepLabel).join(' | ')
+  const failedStep = result.steps.find((step) => step.state === 'error')
+  if (
+    failedStep &&
+    /failed to fetch|maximum retry attempts|network|load failed/i.test(
+      failedStep.errorMessage ?? ''
+    )
+  ) {
+    return [
+      'Bridge network step failed before source burn was confirmed.',
+      'This is not a scam signal by itself; browser/RPC/API connectivity blocked Circle bridge.',
+      details || 'No step details.'
+    ].join(' ')
+  }
   return `Bridge failed before completion. ${details || 'No step details.'}`
 }
 
@@ -937,7 +957,18 @@ export function ArcKitProvider({ children }: { children: ReactNode }) {
           })
         }
 
-        if (result.state === 'error') throw new Error(bridgeFailureMessage(result))
+        if (result.state === 'error') {
+          const burnHash = bridgeBurnHash(result)
+          if (burnHash) {
+            return {
+              hash: burnHash,
+              status: 'pending' as const,
+              error: 'Bridge burn submitted. Waiting Circle attestation/mint; do not retry yet.',
+              value: { ...result, state: 'pending' as const }
+            }
+          }
+          throw new Error(bridgeFailureMessage(result))
+        }
         return { hash: bridgeHash(result), value: result }
       })
       if (!tracked.value) throw new Error('Bridge result kosong.')
