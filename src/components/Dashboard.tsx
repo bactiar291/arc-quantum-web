@@ -10,6 +10,7 @@ import { EURC_TOKEN, SEPOLIA_USDC_TOKEN, USDC_TOKEN } from '../lib/tokens'
 import { useAppStore, type Token } from '../store/useAppStore'
 import { useArcAppKit } from '../hooks/useArcAppKit'
 import { Button } from './ui/Button'
+import { CopyAddress } from './ui/CopyAddress'
 import { Panel } from './ui/Panel'
 
 function trimBalance(value: string) {
@@ -43,7 +44,14 @@ function BalanceRow({
             <span className="marker-blue">{label}</span>
           </div>
           {address ? (
-            <div className="truncate text-quantum-black/40">{address}</div>
+            <div className="mt-1 flex items-center gap-2">
+              <div className="truncate text-quantum-black/40">{address}</div>
+              <CopyAddress
+                address={address}
+                iconOnly
+                className="h-5 w-5 shrink-0 border-quantum-black/50 shadow-none"
+              />
+            </div>
           ) : (
             <div className="text-quantum-black/40">native gas balance</div>
           )}
@@ -187,8 +195,17 @@ export function Dashboard() {
                 {privyAuthenticated ? walletLabel || 'active' : 'off'}
               </b>
             </div>
-            <div className="mt-1 truncate text-quantum-black/55">
-              {ownerAddress ?? 'connect wallet'}
+            <div className="mt-1 flex items-center gap-2">
+              <div className="min-w-0 truncate text-quantum-black/55">
+                {ownerAddress ?? 'connect wallet'}
+              </div>
+              {ownerAddress ? (
+                <CopyAddress
+                  address={ownerAddress}
+                  label="Copy Wallet"
+                  className="h-6 shrink-0 px-2 shadow-none"
+                />
+              ) : null}
             </div>
           </div>
           <Button

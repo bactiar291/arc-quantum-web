@@ -3,6 +3,7 @@ import { LogOut, PlugZap, ShieldCheck, Terminal } from 'lucide-react'
 import { useArcAppKit } from '../hooks/useArcAppKit'
 import { QuantumLogo } from './QuantumLogo'
 import { Button } from './ui/Button'
+import { CopyAddress } from './ui/CopyAddress'
 
 function shortAddress(address: string) {
   return `${address.slice(0, 6)}...${address.slice(-4)}`
@@ -66,7 +67,12 @@ export function Header() {
           {account && isSignedIn ? (
             <div className="inline-flex min-h-10 min-w-32 items-center justify-center gap-2 border-2 border-quantum-black bg-quantum-green px-3 py-2 font-display text-base uppercase leading-none text-quantum-ink shadow-[2px_2px_0_#111] md:text-lg">
               <ShieldCheck className="h-4 w-4" />
-              {label}
+              <span>{label}</span>
+              <CopyAddress
+                address={account}
+                iconOnly
+                className="h-6 w-6 border-quantum-black/70 shadow-none"
+              />
             </div>
           ) : (
             <Button onClick={action} disabled={isConnecting} className="min-w-32">

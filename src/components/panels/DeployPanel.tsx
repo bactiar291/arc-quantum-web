@@ -4,6 +4,7 @@ import { useRef, useState } from 'react'
 import { useArcAppKit } from '../../hooks/useArcAppKit'
 import { addressUrl } from '../../lib/arc'
 import { Button } from '../ui/Button'
+import { CopyAddress } from '../ui/CopyAddress'
 import { Input } from '../ui/Input'
 import { Panel } from '../ui/Panel'
 import { QuantumBusyOverlay } from '../ui/QuantumBusyOverlay'
@@ -155,7 +156,10 @@ export function DeployPanel() {
 
       {contractAddress ? (
         <div className="mt-4 border-4 border-quantum-black bg-white p-3 font-mono text-xs uppercase shadow-[5px_5px_0_#111]">
-          <div className="text-quantum-black/55">Contract Address</div>
+          <div className="flex items-center justify-between gap-2 text-quantum-black/55">
+            <span>Contract Address</span>
+            <CopyAddress address={contractAddress} label="Copy CA" className="h-6 px-2 shadow-none" />
+          </div>
           <a
             href={addressUrl(contractAddress as `0x${string}`)}
             target="_blank"
