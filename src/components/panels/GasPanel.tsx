@@ -72,20 +72,25 @@ export function GasPanel() {
             <ShieldCheck className="mb-3 h-7 w-7 text-quantum-green" />
             <div className="font-display text-3xl">APP KIT</div>
             <div className="font-mono text-xs uppercase text-white/55">
-              Wallet signer execution
+              Active path. Wallet confirms and pays gas.
             </div>
           </div>
           <div className="border-2 border-white bg-black p-4">
             <KeyRound className="mb-3 h-7 w-7 text-quantum-yellow" />
             <div className="font-display text-3xl">ZERODEV</div>
             <div className="font-mono text-xs uppercase text-white/55">
-              Sponsored AA env prepared
+              Env configured. AA sponsor execution not wired yet.
             </div>
           </div>
         </div>
 
-        <Button variant={ready ? 'cyan' : 'red'} className="w-full" disabled>
-          {ready ? 'Gas Env Ready' : 'Gas Env Missing'}
+        <div className="border-2 border-quantum-yellow bg-black p-3 font-mono text-xs uppercase leading-5 text-quantum-yellow">
+          Sponsor gas needs smart account/session execution. Current swap uses
+          Circle App Kit wallet signer, so MetaMask popup is expected.
+        </div>
+
+        <Button variant={ready ? 'ghost' : 'red'} className="w-full" disabled>
+          {ready ? 'Wallet Gas Active' : 'Gas Env Missing'}
         </Button>
       </div>
     </Panel>

@@ -7,17 +7,19 @@ import ReactDOM from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import { createConfig, WagmiProvider } from 'wagmi'
 import { injected } from 'wagmi/connectors'
+import { sepolia } from 'wagmi/chains'
 
 import App from './App'
-import { arcTestnet, arcTransport } from './lib/arc'
+import { arcTestnet, arcTransport, sepoliaTransport } from './lib/arc'
 
 const queryClient = new QueryClient()
 
 const config = createConfig({
-  chains: [arcTestnet],
+  chains: [arcTestnet, sepolia],
   connectors: [injected()],
   transports: {
-    [arcTestnet.id]: arcTransport
+    [arcTestnet.id]: arcTransport,
+    [sepolia.id]: sepoliaTransport
   }
 })
 

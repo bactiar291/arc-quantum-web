@@ -6,6 +6,7 @@ import {
   type Address,
   type Hex
 } from 'viem'
+import { sepolia } from 'viem/chains'
 
 export const ARC_CHAIN_ID = Number(import.meta.env.VITE_ARC_CHAIN_ID || 5042002)
 export const ARC_PRIMARY_RPC_URL =
@@ -17,6 +18,10 @@ export const ARC_RPC_URLS = Array.from(
 )
 export const ARC_EXPLORER =
   import.meta.env.VITE_ARC_EXPLORER || 'https://testnet.arcscan.app'
+export const SEPOLIA_CHAIN_ID = 11155111
+export const SEPOLIA_RPC_URL =
+  import.meta.env.VITE_SEPOLIA_RPC_URL || 'https://ethereum-sepolia-rpc.publicnode.com'
+export const SEPOLIA_EXPLORER = 'https://sepolia.etherscan.io'
 
 export const arcTransport = fallback(
   ARC_RPC_URLS.map((url) =>
@@ -52,6 +57,16 @@ export const arcTestnet = defineChain({
 export const arcPublicClient = createPublicClient({
   chain: arcTestnet,
   transport: arcTransport
+})
+
+export const sepoliaTransport = http(SEPOLIA_RPC_URL, {
+  retryCount: 3,
+  timeout: 10_000
+})
+
+export const sepoliaPublicClient = createPublicClient({
+  chain: sepolia,
+  transport: sepoliaTransport
 })
 
 export function txUrl(hash: Hex) {

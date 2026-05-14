@@ -10,7 +10,7 @@ export function StatusBar() {
     watch: true
   })
   const { account } = useArcAppKit()
-  const gasReady = envStatus.zeroDevProject && envStatus.zeroDevRpc
+  const sponsorConfigured = envStatus.zeroDevProject && envStatus.zeroDevRpc
 
   return (
     <footer className="fixed bottom-0 left-0 right-0 z-30 border-t-2 border-white bg-black px-4 py-2 font-mono text-[11px] uppercase text-white md:px-6">
@@ -22,9 +22,9 @@ export function StatusBar() {
           </b>
         </span>
         <span>
-          GAS ENV:{' '}
-          <b className={gasReady ? 'text-quantum-green' : 'text-quantum-yellow'}>
-            {gasReady ? 'READY' : 'WALLET GAS'}
+          EXECUTION:{' '}
+          <b className={sponsorConfigured ? 'text-quantum-yellow' : 'text-quantum-red'}>
+            {sponsorConfigured ? 'WALLET GAS' : 'NO SPONSOR'}
           </b>
         </span>
         <span>

@@ -37,6 +37,7 @@ import {
   ARC_CHAIN_ID,
   ARC_EXPLORER,
   ARC_RPC_URLS,
+  SEPOLIA_RPC_URL,
   arcTestnet,
   arcTransport
 } from '../lib/arc'
@@ -89,9 +90,15 @@ function getProvider() {
 
 function normalizeError(error: unknown) {
   const kitMessage = getErrorMessage(error)
-  if (kitMessage) return kitMessage
-  if (error instanceof Error) return error.message
-  return String(error)
+  const message = kitMessage || (error instanceof Error ? error.message : String(error))
+  if (/createSwap failed|Failed to fetch|Maximum retry attempts/i.test(message)) {
+    return [
+      'Circle Stablecoin Service belum bisa diakses dari browser.',
+      'Cek Kit Key domain, ad-block/VPN, dan status Circle App Kit.',
+      `Raw: ${message}`
+    ].join(' ')
+  }
+  return message
 }
 
 function swapTokens(direction: SwapDirection) {
@@ -178,7 +185,10 @@ export function ArcKitProvider({ children }: { children: ReactNode }) {
       getPublicClient: ({ chain }) =>
         createPublicClient({
           chain: chain.id === ARC_CHAIN_ID ? arcTestnet : chain,
-          transport: chain.id === ARC_CHAIN_ID ? arcTransport : http()
+          transport:
+            chain.id === ARC_CHAIN_ID
+              ? arcTransport
+              : http(SEPOLIA_RPC_URL, { retryCount: 3, timeout: 10_000 })
         })
     })
     setAdapter(nextAdapter)
@@ -230,7 +240,6 @@ export function ArcKitProvider({ children }: { children: ReactNode }) {
         tokenOut,
         amountIn: amount,
         config: {
-          allowanceStrategy: 'permit',
           kitKey: CIRCLE_KIT_KEY,
           slippageBps
         }
@@ -250,7 +259,6 @@ export function ArcKitProvider({ children }: { children: ReactNode }) {
           tokenOut,
           amountIn: request.amount,
           config: {
-            allowanceStrategy: 'permit',
             kitKey: CIRCLE_KIT_KEY,
             slippageBps: request.slippageBps
           }

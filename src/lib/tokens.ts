@@ -18,6 +18,14 @@ export const EURC_TOKEN: Token = {
   createdAt: 0
 }
 
+export const SEPOLIA_USDC_TOKEN: Token = {
+  address: '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238',
+  name: 'USDC Sepolia',
+  symbol: 'USDC',
+  decimals: 6,
+  createdAt: 0
+}
+
 export const DEFAULT_TOKENS = [USDC_TOKEN, EURC_TOKEN] satisfies Token[]
 
 export const DEFAULT_TOKEN_ADDRESSES = new Set(

@@ -6,19 +6,19 @@ export default {
     extend: {
       colors: {
         quantum: {
-          black: '#0B0F0E',
-          panel: '#141A18',
-          ink: '#F3F0E8',
-          yellow: '#D8C95C',
-          cyan: '#5FC8BA',
-          red: '#D95E6A',
-          green: '#8BCB77'
+          black: '#101614',
+          panel: '#1B2421',
+          ink: '#FFF9E8',
+          yellow: '#F1DA63',
+          cyan: '#7EE6D6',
+          red: '#F06B7A',
+          green: '#A8DC85'
         }
       },
       boxShadow: {
-        brutal: '5px 5px 0 #D8C95C',
-        brutalCyan: '5px 5px 0 #5FC8BA',
-        brutalRed: '5px 5px 0 #D95E6A'
+        brutal: '5px 5px 0 #F1DA63',
+        brutalCyan: '5px 5px 0 #7EE6D6',
+        brutalRed: '5px 5px 0 #F06B7A'
       },
       fontFamily: {
         display: ['Bebas Neue', 'Impact', 'sans-serif'],
@@ -34,8 +34,8 @@ export default {
           '100%': { opacity: '1', transform: 'translateY(0)' }
         },
         pulseBorder: {
-          '0%, 100%': { boxShadow: '5px 5px 0 #D8C95C' },
-          '50%': { boxShadow: '5px 5px 0 #5FC8BA' }
+          '0%, 100%': { boxShadow: '5px 5px 0 #F1DA63' },
+          '50%': { boxShadow: '5px 5px 0 #7EE6D6' }
         },
         glitch: {
           '0%, 100%': { transform: 'translate(0)' },

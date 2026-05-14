@@ -1,65 +1,134 @@
-import { Plus, Trash2, WalletCards } from 'lucide-react'
-import { useState } from 'react'
-import { formatUnits, isAddress, type Address } from 'viem'
-import { useReadContract } from 'wagmi'
+import { ArrowLeftRight, WalletCards } from 'lucide-react'
+import { formatUnits, type Address } from 'viem'
+import { useBalance, useReadContract } from 'wagmi'
 
-import { ARC_CHAIN_ID, txUrl } from '../lib/arc'
+import { ARC_CHAIN_ID, SEPOLIA_CHAIN_ID, txUrl } from '../lib/arc'
 import { erc20Abi } from '../lib/contracts'
-import { DEFAULT_TOKEN_ADDRESSES, mergeTokens } from '../lib/tokens'
+import { EURC_TOKEN, SEPOLIA_USDC_TOKEN, USDC_TOKEN } from '../lib/tokens'
 import { useAppStore, type Token } from '../store/useAppStore'
 import { Button } from './ui/Button'
-import { Input } from './ui/Input'
 import { Panel } from './ui/Panel'
 
-function TokenBalance({ token, owner }: { token: Token; owner?: Address }) {
-  const { data } = useReadContract({
-    address: token.address,
-    abi: erc20Abi,
-    functionName: 'balanceOf',
-    args: owner ? [owner] : undefined,
-    chainId: ARC_CHAIN_ID,
-    query: { enabled: Boolean(owner) }
-  })
+function trimBalance(value: string) {
+  const [whole, fraction = ''] = value.split('.')
+  const shortFraction = fraction.slice(0, 6).replace(/0+$/, '')
+  return shortFraction ? `${whole}.${shortFraction}` : whole
+}
 
+function BalanceRow({
+  chain,
+  label,
+  symbol,
+  address,
+  value
+}: {
+  chain: string
+  label: string
+  symbol: string
+  address?: string
+  value: string
+}) {
   return (
-    <div className="grid grid-cols-[1fr_auto] gap-2 border-2 border-white bg-black p-3 font-mono text-xs uppercase">
-      <div className="min-w-0">
-        <div className="truncate text-quantum-yellow">{token.symbol}</div>
-        <div className="truncate text-white/45">{token.address}</div>
+    <div className="border-2 border-white bg-black p-3 font-mono text-xs uppercase">
+      <div className="mb-2 flex items-center justify-between gap-3">
+        <span className="text-white/55">{chain}</span>
+        <span className="text-quantum-yellow">{symbol}</span>
       </div>
-      <div className="text-right text-quantum-cyan">
-        {typeof data === 'bigint' ? formatUnits(data, token.decimals) : '0'}
+      <div className="grid grid-cols-[1fr_auto] gap-3">
+        <div className="min-w-0">
+          <div className="truncate text-white">{label}</div>
+          {address ? (
+            <div className="truncate text-white/40">{address}</div>
+          ) : (
+            <div className="text-white/40">native gas balance</div>
+          )}
+        </div>
+        <div className="text-right text-quantum-cyan">{value}</div>
       </div>
     </div>
   )
 }
 
+function NativeBalance({
+  chainId,
+  chain,
+  label,
+  symbol,
+  owner
+}: {
+  chainId: number
+  chain: string
+  label: string
+  symbol: string
+  owner?: Address
+}) {
+  const { data, isLoading, error } = useBalance({
+    address: owner,
+    chainId,
+    query: { enabled: Boolean(owner) }
+  })
+
+  const value = !owner
+    ? '-'
+    : error
+      ? 'ERR'
+      : isLoading
+        ? '...'
+        : data
+          ? trimBalance(data.formatted)
+          : '0'
+
+  return (
+    <BalanceRow chain={chain} label={label} symbol={symbol} value={value} />
+  )
+}
+
+function TokenBalance({
+  chainId,
+  chain,
+  token,
+  owner
+}: {
+  chainId: number
+  chain: string
+  token: Token
+  owner?: Address
+}) {
+  const { data, isLoading, error } = useReadContract({
+    address: token.address,
+    abi: erc20Abi,
+    functionName: 'balanceOf',
+    args: owner ? [owner] : undefined,
+    chainId,
+    query: { enabled: Boolean(owner) }
+  })
+
+  const value = !owner
+    ? '-'
+    : error
+      ? 'ERR'
+      : isLoading
+        ? '...'
+        : typeof data === 'bigint'
+          ? trimBalance(formatUnits(data, token.decimals))
+          : '0'
+
+  return (
+    <BalanceRow
+      address={token.address}
+      chain={chain}
+      label={token.name}
+      symbol={token.symbol}
+      value={value}
+    />
+  )
+}
+
 export function Dashboard() {
-  const [address, setAddress] = useState('')
-  const [symbol, setSymbol] = useState('')
-  const [decimals, setDecimals] = useState(18)
-  const customTokens = useAppStore((state) => state.deployedTokens)
-  const tokens = mergeTokens(customTokens)
   const txHistory = useAppStore((state) => state.txHistory)
-  const addToken = useAppStore((state) => state.addToken)
-  const removeToken = useAppStore((state) => state.removeToken)
   const removeTx = useAppStore((state) => state.removeTx)
   const clearTxHistory = useAppStore((state) => state.clearTxHistory)
   const ownerAddress = useAppStore((state) => state.userAddress)
-
-  const importToken = () => {
-    if (!isAddress(address)) return
-    addToken({
-      address,
-      name: symbol || 'Imported Token',
-      symbol: (symbol || 'TOKEN').toUpperCase(),
-      decimals,
-      createdAt: Date.now()
-    })
-    setAddress('')
-    setSymbol('')
-    setDecimals(18)
-  }
 
   return (
     <Panel className="animate-reveal">
@@ -69,61 +138,54 @@ export function Dashboard() {
       </div>
 
       <div className="mt-4 space-y-3">
-        <div className="grid grid-cols-1 gap-3">
-          <Input
-            label="Import Token"
-            value={address}
-            onChange={(event) => setAddress(event.target.value)}
-            placeholder="0x..."
-          />
-          <div className="grid grid-cols-[1fr_96px] gap-3">
-            <Input
-              label="Symbol"
-              value={symbol}
-              onChange={(event) => setSymbol(event.target.value)}
-              placeholder="ARC"
-            />
-            <Input
-              label="Dec"
-              type="number"
-              min={0}
-              max={18}
-              value={decimals}
-              onChange={(event) => setDecimals(Number(event.target.value))}
-            />
+        <div className="border-2 border-white bg-black p-3 font-mono text-[11px] uppercase">
+          <div className="mb-1 flex items-center gap-2 text-quantum-cyan">
+            <ArrowLeftRight className="h-4 w-4" />
+            Sepolia to Arc balance view
           </div>
-          <Button variant="cyan" onClick={importToken} disabled={!isAddress(address)}>
-            <Plus className="h-5 w-5" />
-            Add Token
-          </Button>
+          <div className="truncate text-white/55">
+            {ownerAddress ?? 'connect wallet to read balances'}
+          </div>
         </div>
 
         <div className="space-y-2">
-          <div className="font-display text-2xl">BALANCES</div>
-          {tokens.length ? (
-            tokens.map((token) => (
-              <div key={token.address} className="grid grid-cols-[1fr_auto] gap-2">
-                <TokenBalance token={token} owner={ownerAddress ?? undefined} />
-                {DEFAULT_TOKEN_ADDRESSES.has(token.address.toLowerCase()) ? (
-                  <div className="grid w-11 place-items-center border-2 border-white bg-black font-mono text-[10px] text-quantum-cyan shadow-[3px_3px_0_#D8C95C]">
-                    DEF
-                  </div>
-                ) : (
-                  <button
-                    aria-label={`Remove ${token.symbol}`}
-                    className="grid w-11 place-items-center border-2 border-white bg-quantum-red text-white shadow-[3px_3px_0_#D8C95C]"
-                    onClick={() => removeToken(token.address)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                )}
-              </div>
-            ))
-          ) : (
-            <div className="border-2 border-white bg-black p-3 font-mono text-xs uppercase text-white/50">
-              No tokens yet. Deploy or import token.
-            </div>
-          )}
+          <div className="font-display text-2xl">SEPOLIA</div>
+          <NativeBalance
+            chain="Sepolia"
+            chainId={SEPOLIA_CHAIN_ID}
+            label="Sepolia ETH gas"
+            owner={ownerAddress ?? undefined}
+            symbol="ETH"
+          />
+          <TokenBalance
+            chain="Sepolia"
+            chainId={SEPOLIA_CHAIN_ID}
+            owner={ownerAddress ?? undefined}
+            token={SEPOLIA_USDC_TOKEN}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <div className="font-display text-2xl">ARC TESTNET</div>
+          <NativeBalance
+            chain="Arc"
+            chainId={ARC_CHAIN_ID}
+            label="Arc native gas"
+            owner={ownerAddress ?? undefined}
+            symbol="USDC"
+          />
+          <TokenBalance
+            chain="Arc"
+            chainId={ARC_CHAIN_ID}
+            owner={ownerAddress ?? undefined}
+            token={USDC_TOKEN}
+          />
+          <TokenBalance
+            chain="Arc"
+            chainId={ARC_CHAIN_ID}
+            owner={ownerAddress ?? undefined}
+            token={EURC_TOKEN}
+          />
         </div>
 
         <div className="space-y-2">

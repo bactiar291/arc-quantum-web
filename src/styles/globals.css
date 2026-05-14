@@ -5,14 +5,14 @@
 @tailwind utilities;
 
 :root {
-  --bg-primary: #0b0f0e;
-  --bg-panel: #141a18;
-  --border: #f3f0e8;
-  --accent-yellow: #d8c95c;
-  --accent-cyan: #5fc8ba;
-  --accent-red: #d95e6a;
-  --text-primary: #f3f0e8;
-  --text-mono: #5fc8ba;
+  --bg-primary: #101614;
+  --bg-panel: #1b2421;
+  --border: #fff9e8;
+  --accent-yellow: #f1da63;
+  --accent-cyan: #7ee6d6;
+  --accent-red: #f06b7a;
+  --text-primary: #fff9e8;
+  --text-mono: #7ee6d6;
 }
 
 * {
@@ -54,8 +54,8 @@ select {
   inset: 0;
   z-index: 0;
   background-image:
-    linear-gradient(rgba(243, 240, 232, 0.055) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(243, 240, 232, 0.055) 1px, transparent 1px);
+    linear-gradient(rgba(255, 249, 232, 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 249, 232, 0.07) 1px, transparent 1px);
   background-size: 32px 32px;
   mask-image: linear-gradient(to bottom, #000 0%, transparent 90%);
 }
@@ -72,8 +72,8 @@ select {
   z-index: -1;
   background: linear-gradient(
     135deg,
-    rgba(216, 201, 92, 0.08),
-    rgba(95, 200, 186, 0.05) 42%,
+    rgba(241, 218, 99, 0.1),
+    rgba(126, 230, 214, 0.07) 42%,
     transparent 42%
   );
 }
@@ -110,7 +110,7 @@ select {
 
 .input-quantum:focus {
   border-color: var(--accent-yellow);
-  box-shadow: 0 0 0 2px rgba(216, 201, 92, 0.35);
+  box-shadow: 0 0 0 2px rgba(241, 218, 99, 0.38);
 }
 
 .input-quantum:disabled {
@@ -190,17 +190,17 @@ select {
 
 .orbit-a {
   transform: rotateX(72deg) rotateZ(20deg);
-  border-color: #d8c95c;
+  border-color: #f1da63;
 }
 
 .orbit-b {
   transform: rotateX(58deg) rotateY(56deg);
-  border-color: #5fc8ba;
+  border-color: #7ee6d6;
 }
 
 .orbit-c {
   transform: rotateX(112deg) rotateY(20deg);
-  border-color: #d95e6a;
+  border-color: #f06b7a;
 }
 
 @media (max-width: 640px) {
