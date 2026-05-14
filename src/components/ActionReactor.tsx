@@ -296,18 +296,18 @@ export function ActionReactor({ activeTab }: { activeTab: ReactorTab }) {
 
   return (
     <Panel className="animate-reveal overflow-hidden bg-quantum-black p-0 text-white" shadow="cyan">
-      <div className="relative min-h-[460px]">
+      <div className="relative min-h-[300px]">
         <div className="reactor-bg" />
         <QuantumCanvas mode={activeTab} status={status} />
 
-        <div className="relative z-10 grid min-h-[460px] grid-rows-[auto_1fr_auto]">
-          <div className="flex flex-col gap-3 border-b-4 border-white/80 bg-white/95 p-4 text-quantum-black md:flex-row md:items-center md:justify-between">
+        <div className="relative z-10 grid min-h-[300px] grid-rows-[auto_1fr_auto]">
+          <div className="flex flex-col gap-2 border-b-4 border-white/80 bg-white/95 p-3 text-quantum-black md:flex-row md:items-center md:justify-between">
             <div className="flex items-center gap-3">
-              <div className={`grid h-12 w-12 place-items-center border-4 border-quantum-black ${config.pulse} shadow-[5px_5px_0_#111]`}>
+              <div className={`grid h-10 w-10 place-items-center border-4 border-quantum-black ${config.pulse} shadow-[5px_5px_0_#111]`}>
                 <Icon className="h-6 w-6" />
               </div>
               <div>
-                <div className="font-display text-4xl leading-none md:text-5xl">
+                <div className="font-display text-3xl leading-none md:text-4xl">
                   {config.title}
                 </div>
                 <div className="font-mono text-[11px] uppercase text-quantum-black/55">
@@ -329,7 +329,7 @@ export function ActionReactor({ activeTab }: { activeTab: ReactorTab }) {
           </div>
 
           <div className="relative">
-            <div className="absolute left-4 top-4 border-4 border-white bg-quantum-black/85 px-3 py-2 font-mono text-xs uppercase text-white shadow-[5px_5px_0_#00e5ff]">
+            <div className="absolute left-3 top-3 max-w-[72%] truncate border-4 border-white bg-quantum-black/85 px-3 py-2 font-mono text-[11px] uppercase text-white shadow-[5px_5px_0_#00e5ff]">
               <span className={status === 'pending' ? 'animate-pulse text-quantum-yellow' : 'text-quantum-cyan'}>
                 {statusTone(status)}
               </span>
@@ -340,7 +340,7 @@ export function ActionReactor({ activeTab }: { activeTab: ReactorTab }) {
             </div>
           </div>
 
-          <div className="grid gap-3 border-t-4 border-white/80 bg-white/95 p-4 text-quantum-black md:grid-cols-4">
+          <div className="grid gap-2 border-t-4 border-white/80 bg-white/95 p-3 text-quantum-black md:grid-cols-4">
             {config.telemetry.map((item, index) => (
               <div
                 key={item}
@@ -367,9 +367,9 @@ export function ProtocolMatrix({ activeTab }: { activeTab: ReactorTab }) {
 
   return (
     <Panel className="animate-reveal bg-white" shadow="red">
-      <div className="mb-4 flex flex-col gap-3 border-b-4 border-quantum-black pb-3 md:flex-row md:items-center md:justify-between">
-        <div className="flex items-center gap-2 font-display text-4xl leading-none">
-          <Activity className="h-7 w-7 text-quantum-red" />
+      <div className="mb-3 flex flex-col gap-2 border-b-4 border-quantum-black pb-3 md:flex-row md:items-center md:justify-between">
+        <div className="flex items-center gap-2 font-display text-3xl leading-none">
+          <Activity className="h-6 w-6 text-quantum-red" />
           PROTOCOL MATRIX
         </div>
         <div className="border-4 border-quantum-black bg-quantum-cyan px-3 py-2 font-mono text-[11px] uppercase shadow-[5px_5px_0_#111]">
@@ -387,14 +387,14 @@ export function ProtocolMatrix({ activeTab }: { activeTab: ReactorTab }) {
               className={`route-cell ${active ? 'route-cell-active' : ''}`}
               style={{ '--route-delay': `${index * 140}ms` } as CSSProperties}
             >
-              <div className={`mb-3 grid h-11 w-11 place-items-center border-4 border-quantum-black ${config.pulse}`}>
+              <div className={`mb-2 grid h-9 w-9 place-items-center border-4 border-quantum-black ${config.pulse}`}>
                 <Icon className="h-5 w-5" />
               </div>
-              <div className="font-display text-3xl leading-none">{mode.toUpperCase()}</div>
+              <div className="font-display text-2xl leading-none">{mode.toUpperCase()}</div>
               <div className="mt-1 font-mono text-[10px] uppercase text-quantum-black/55">
                 {config.label}
               </div>
-              <div className="mt-4 grid grid-cols-3 gap-1">
+              <div className="mt-3 grid grid-cols-3 gap-1">
                 {config.colors.map((color) => (
                   <span
                     key={color}

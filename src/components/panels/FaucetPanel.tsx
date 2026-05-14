@@ -10,19 +10,18 @@ export function FaucetPanel() {
   const { account, connect, isConnecting } = useArcAppKit()
 
   return (
-    <Panel className="animate-reveal bg-quantum-cyan" shadow="red">
-      <div className="mb-5 flex items-center gap-2 border-b-4 border-quantum-black pb-3 font-display text-4xl">
+    <Panel className="compact-action-panel animate-reveal bg-quantum-cyan" shadow="red">
+      <div className="mb-3 flex items-center gap-2 border-b-4 border-quantum-black pb-3 font-display text-3xl">
         <Waves className="h-7 w-7 text-quantum-red" />
         CIRCLE FAUCET
       </div>
 
-      <div className="grid gap-4 md:grid-cols-[1fr_220px]">
-        <div className="border-4 border-quantum-black bg-white p-4 font-mono text-xs uppercase leading-5 shadow-[5px_5px_0_#111]">
-          Circle blocks iframe embedding, so claims must open on the official
-          faucet page. This panel keeps the flow inside the app: copy wallet,
-          open faucet, paste address, claim test USDC.
+      <div className="grid gap-3 md:grid-cols-[1fr_220px]">
+        <div className="mini-swap-box bg-white font-mono text-[11px] uppercase leading-4">
+          Official faucet opens outside because Circle blocks iframe embedding.
+          Copy wallet, open faucet, paste address, claim test USDC.
         </div>
-        <div className="border-4 border-quantum-black bg-quantum-yellow p-4 font-mono text-xs uppercase shadow-[5px_5px_0_#111]">
+        <div className="mini-swap-box bg-quantum-yellow font-mono text-xs uppercase">
           <div className="text-quantum-black/55">Connected Wallet</div>
           <div className="mt-2 break-all text-quantum-black">
             {account ?? 'Connect wallet first'}
@@ -30,7 +29,7 @@ export function FaucetPanel() {
         </div>
       </div>
 
-      <div className="mt-5 grid gap-3 sm:grid-cols-3">
+      <div className="mt-3 grid gap-3 sm:grid-cols-3">
         {!account ? (
           <Button onClick={connect} disabled={isConnecting} className="w-full sm:col-span-1">
             Connect Wallet
@@ -56,7 +55,7 @@ export function FaucetPanel() {
         </Button>
       </div>
 
-      <div className="mt-5 border-4 border-quantum-black bg-white p-3 font-mono text-xs uppercase shadow-[5px_5px_0_#111]">
+      <div className="mt-3 border-4 border-quantum-black bg-white p-3 font-mono text-xs uppercase shadow-[5px_5px_0_#111]">
         Faucet source:{' '}
         <a
           href={faucetUrl}

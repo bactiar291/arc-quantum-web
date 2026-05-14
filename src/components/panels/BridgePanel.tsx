@@ -52,16 +52,16 @@ export function BridgePanel() {
   }
 
   return (
-    <Panel className="animate-reveal" shadow="yellow">
-      <div className="mb-5 flex items-center gap-2 border-b-4 border-quantum-black pb-3 font-display text-4xl">
+    <Panel className="compact-action-panel animate-reveal" shadow="yellow">
+      <div className="mb-3 flex items-center gap-2 border-b-4 border-quantum-black pb-3 font-display text-3xl">
         <GitBranchPlus className="h-7 w-7 text-quantum-yellow" />
         USDC BRIDGE
       </div>
 
-      <div className="space-y-4">
-        <div className="grid gap-3 md:grid-cols-[1fr_56px_1fr]">
-          <div className="border-4 border-quantum-black bg-quantum-yellow p-4 shadow-[5px_5px_0_#111]">
-            <div className="font-display text-4xl">{fromChain}</div>
+      <div className="space-y-3">
+        <div className="grid gap-2 md:grid-cols-[1fr_52px_1fr]">
+          <div className="mini-swap-box bg-quantum-yellow">
+            <div className="font-display text-3xl">{fromChain}</div>
             <div className="font-mono text-xs uppercase text-quantum-black/55">Source</div>
           </div>
           <button
@@ -72,8 +72,8 @@ export function BridgePanel() {
           >
             <ArrowUpDown className="h-6 w-6" />
           </button>
-          <div className="border-4 border-quantum-black bg-quantum-green p-4 shadow-[5px_5px_0_#111]">
-            <div className="font-display text-4xl">{toChain}</div>
+          <div className="mini-swap-box bg-quantum-green">
+            <div className="font-display text-3xl">{toChain}</div>
             <div className="font-mono text-xs uppercase text-quantum-black/55">Destination</div>
           </div>
         </div>
@@ -83,6 +83,7 @@ export function BridgePanel() {
           inputMode="decimal"
           value={amount}
           onChange={(event) => setAmount(event.target.value)}
+          className="compact-input"
         />
         <div className="space-y-2">
           <div className="truncate border-4 border-quantum-black bg-white p-3 font-mono text-xs text-quantum-cyan shadow-[5px_5px_0_#111]">
@@ -102,6 +103,7 @@ export function BridgePanel() {
               onChange={(event) => setRecipient(event.target.value)}
               placeholder={account || '0x...'}
               hint="Empty = connected wallet"
+              className="compact-input"
             />
           ) : null}
         </div>

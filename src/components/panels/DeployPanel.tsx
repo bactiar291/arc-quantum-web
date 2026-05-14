@@ -81,16 +81,15 @@ export function DeployPanel() {
   }
 
   return (
-    <Panel className="animate-reveal" shadow="red">
-      <div className="mb-5 flex items-center gap-2 border-b-4 border-quantum-black pb-3 font-display text-4xl">
+    <Panel className="compact-action-panel animate-reveal" shadow="red">
+      <div className="mb-3 flex items-center gap-2 border-b-4 border-quantum-black pb-3 font-display text-3xl">
         <Rocket className="h-7 w-7 text-quantum-orange" />
         RANDOM TOKEN DEPLOY
       </div>
 
-      <div className="mb-4 grid gap-3 md:grid-cols-[1fr_220px]">
-        <div className="border-4 border-quantum-black bg-quantum-yellow p-4 font-mono text-xs uppercase leading-5 text-quantum-black shadow-[5px_5px_0_#111]">
-          Generate membuat name, ticker, supply, decimals acak dan unik selama
-          sesi browser. Deploy tetap wallet signer dan butuh popup gas.
+      <div className="mb-3 grid gap-2 md:grid-cols-[1fr_170px]">
+        <div className="mini-swap-box bg-quantum-yellow font-mono text-[11px] uppercase leading-4 text-quantum-black">
+          Generate acak name, ticker, supply, decimals. Deploy tetap wallet gas.
         </div>
         <Button variant="purple" onClick={generate} className="w-full">
           <Dice5 className="h-5 w-5" />
@@ -98,22 +97,25 @@ export function DeployPanel() {
         </Button>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-3 md:grid-cols-2">
         <Input
           label="Token Name"
           value={name}
           onChange={(event) => setName(event.target.value)}
+          className="compact-input"
         />
         <Input
           label="Symbol"
           value={symbol}
           onChange={(event) => setSymbol(event.target.value.toUpperCase())}
+          className="compact-input"
         />
         <Input
           label="Total Supply"
           value={supply}
           onChange={(event) => setSupply(event.target.value)}
           inputMode="decimal"
+          className="compact-input"
         />
         <Input
           label="Decimals"
@@ -122,10 +124,11 @@ export function DeployPanel() {
           max={18}
           value={decimals}
           onChange={(event) => setDecimals(Number(event.target.value))}
+          className="compact-input"
         />
       </div>
 
-      <div className="mt-5">
+      <div className="mt-4">
         {!isConnected ? (
           <Button className="w-full" onClick={connect} disabled={isConnecting}>
             Connect Arc Wallet

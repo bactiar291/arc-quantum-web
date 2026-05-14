@@ -149,6 +149,13 @@ export function StableSendPanel() {
   const insufficient =
     amountValue !== null && balanceValue !== null && amountValue > balanceValue
   const cannotSend = !validRecipient || invalidAmount || insufficient || busy
+  const setPercentAmount = (percent: number) => {
+    if (balanceValue === null || balanceValue <= 0n) return
+    const nextValue = (balanceValue * BigInt(percent)) / 100n
+    setAmount(formatUnits(nextValue, selectedAsset.decimals))
+    setHash('')
+    setError('')
+  }
 
   const run = async () => {
     if (cannotSend) return
@@ -179,19 +186,19 @@ export function StableSendPanel() {
   }
 
   return (
-    <Panel className="animate-reveal" shadow="cyan">
-      <div className="mb-5 flex items-center gap-2 border-b-4 border-quantum-black pb-3 font-display text-4xl">
+    <Panel className="compact-action-panel animate-reveal" shadow="cyan">
+      <div className="mb-3 flex items-center gap-2 border-b-4 border-quantum-black pb-3 font-display text-3xl">
         <Send className="h-7 w-7 text-quantum-cyan" />
         DIRECT SEND
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-3">
         <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
           {assets.map((asset) => (
             <Button
               key={asset.id}
               variant={assetId === asset.id ? 'cyan' : 'ghost'}
-              className="min-h-14 flex-col gap-1 px-2 py-2 text-lg"
+              className="min-h-10 flex-col gap-0 px-2 py-1 text-sm"
               onClick={() => setAssetId(asset.id)}
             >
               <span>{asset.kind === 'native' ? 'Native' : asset.symbol}</span>
@@ -202,7 +209,7 @@ export function StableSendPanel() {
           ))}
         </div>
 
-        <div className="border-4 border-quantum-black bg-white p-3 font-mono text-xs uppercase shadow-[5px_5px_0_#111]">
+        <div className="mini-swap-box bg-white font-mono text-xs uppercase">
           <div className="flex items-center justify-between gap-3">
             <span className="text-quantum-black/55">Wallet Balance</span>
             <span className="text-quantum-cyan">
@@ -214,23 +221,43 @@ export function StableSendPanel() {
           </div>
         </div>
 
-        <Input
-          label="Amount"
-          inputMode="decimal"
-          value={amount}
-          onChange={(event) => setAmount(event.target.value)}
-        />
-        <Input
-          label="Recipient"
-          value={to}
-          onChange={(event) => setTo(event.target.value)}
-          placeholder="0x..."
-        />
-
-        <Button variant="ghost" className="w-full" onClick={() => setTo(randomAddress())}>
-          <Dice5 className="h-5 w-5" />
-          Random Address
-        </Button>
+        <div className="grid gap-3 md:grid-cols-2">
+          <div>
+            <Input
+              label="Amount"
+              inputMode="decimal"
+              value={amount}
+              onChange={(event) => setAmount(event.target.value)}
+              className="compact-input"
+            />
+            <div className="mt-2 grid grid-cols-4 gap-2">
+              {[25, 50, 75, 100].map((percent) => (
+                <button
+                  key={percent}
+                  className="border-4 border-quantum-black bg-quantum-paper px-2 py-1 font-mono text-[11px] uppercase shadow-[3px_3px_0_#111] disabled:opacity-40"
+                  disabled={balanceValue === null || balanceValue <= 0n}
+                  onClick={() => setPercentAmount(percent)}
+                  type="button"
+                >
+                  {percent}%
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Input
+              label="Recipient"
+              value={to}
+              onChange={(event) => setTo(event.target.value)}
+              placeholder="0x..."
+              className="compact-input"
+            />
+            <Button variant="ghost" className="w-full text-base" onClick={() => setTo(randomAddress())}>
+              <Dice5 className="h-5 w-5" />
+              Random Address
+            </Button>
+          </div>
+        </div>
 
         {invalidAmount && amount ? (
           <div className="border-4 border-quantum-black bg-quantum-red p-3 font-mono text-xs uppercase text-quantum-black shadow-[5px_5px_0_#111]">

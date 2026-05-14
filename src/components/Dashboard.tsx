@@ -32,8 +32,8 @@ function BalanceRow({
   value: string
 }) {
   return (
-    <div className="border-4 border-quantum-black bg-white p-3 font-mono text-xs uppercase shadow-[5px_5px_0_#111]">
-      <div className="mb-2 flex items-center justify-between gap-3">
+    <div className="border-4 border-quantum-black bg-white p-2 font-mono text-[11px] uppercase shadow-[4px_4px_0_#111]">
+      <div className="mb-1 flex items-center justify-between gap-3">
         <span className="text-quantum-black/55">{chain}</span>
         <span className="text-quantum-yellow">{symbol}</span>
       </div>
@@ -182,14 +182,14 @@ export function Dashboard() {
     : 'not issued'
 
   return (
-    <Panel className="dashboard-panel animate-reveal">
-      <div className="flex items-center gap-2 border-b-4 border-quantum-black pb-3 font-display text-3xl">
+    <Panel className="dashboard-panel animate-reveal p-3 md:p-4">
+      <div className="flex items-center gap-2 border-b-4 border-quantum-black pb-2 font-display text-2xl">
         <WalletCards className="h-6 w-6 text-quantum-yellow" />
         ARC WALLET
       </div>
 
-      <div className="mt-4 space-y-3">
-        <div className="border-4 border-quantum-black bg-quantum-yellow p-3 font-mono text-[11px] uppercase shadow-[5px_5px_0_#111]">
+      <div className="mt-3 space-y-2">
+        <div className="border-4 border-quantum-black bg-quantum-yellow p-2 font-mono text-[11px] uppercase shadow-[4px_4px_0_#111]">
           <div className="mb-1 flex items-center gap-2 text-quantum-cyan">
             <ArrowLeftRight className="h-4 w-4" />
             Sepolia to Arc balance view
@@ -216,7 +216,7 @@ export function Dashboard() {
           </div>
         </div>
 
-        <div className="border-4 border-quantum-black bg-white p-3 font-mono text-[11px] uppercase shadow-[5px_5px_0_#111]">
+        <div className="border-4 border-quantum-black bg-white p-2 font-mono text-[11px] uppercase shadow-[4px_4px_0_#111]">
           <div className="mb-2 flex items-center gap-2 text-quantum-purple">
             <ShieldCheck className="h-4 w-4" />
             Privy Session
@@ -272,7 +272,7 @@ export function Dashboard() {
         </div>
 
         <div className="space-y-2">
-          <div className="font-display text-2xl">SEPOLIA</div>
+          <div className="font-display text-xl">SEPOLIA</div>
           <NativeBalance
             chain="Sepolia"
             chainId={SEPOLIA_CHAIN_ID}
@@ -289,7 +289,7 @@ export function Dashboard() {
         </div>
 
         <div className="space-y-2">
-          <div className="font-display text-2xl">ARC TESTNET</div>
+          <div className="font-display text-xl">ARC TESTNET</div>
           <NativeBalance
             chain="Arc"
             chainId={ARC_CHAIN_ID}
@@ -322,7 +322,7 @@ export function Dashboard() {
 
         <div className="space-y-2">
           <div className="flex items-center justify-between gap-3">
-            <div className="font-display text-2xl">RECENT TX</div>
+            <div className="font-display text-xl">RECENT TX</div>
             <Button
               variant="red"
               className="min-h-8 px-2 py-1 text-base"

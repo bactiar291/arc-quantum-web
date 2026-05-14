@@ -1,4 +1,4 @@
-import { PlugZap, ShieldCheck, Terminal } from 'lucide-react'
+import { LogOut, PlugZap, ShieldCheck, Terminal } from 'lucide-react'
 
 import { useArcAppKit } from '../hooks/useArcAppKit'
 import { QuantumLogo } from './QuantumLogo'
@@ -15,9 +15,11 @@ export function Header() {
     connect,
     isConnecting,
     isSignedIn,
+    lastError,
     privyAuthenticated,
     privyEnabled,
     signIn,
+    signOut,
     walletLabel
   } = useArcAppKit()
   const action = account && !isSignedIn ? signIn : connect
@@ -56,10 +58,33 @@ export function Header() {
               {privyAuthenticated ? walletLabel || 'PRIVY' : 'OFF'}
             </b>
           </div>
-          <Button onClick={action} disabled={isConnecting} className="min-w-44">
-            {isSignedIn ? <ShieldCheck className="h-5 w-5" /> : <PlugZap className="h-5 w-5" />}
-            {label}
-          </Button>
+          {lastError ? (
+            <div className="max-w-[260px] truncate border-4 border-quantum-black bg-quantum-red px-3 py-2 font-mono text-[11px] uppercase text-quantum-ink shadow-[5px_5px_0_#111]">
+              {lastError}
+            </div>
+          ) : null}
+          {account && isSignedIn ? (
+            <div className="inline-flex min-h-11 min-w-36 items-center justify-center gap-2 border-4 border-quantum-black bg-quantum-green px-4 py-2 font-display text-xl uppercase leading-none text-quantum-ink shadow-[5px_5px_0_#111]">
+              <ShieldCheck className="h-5 w-5" />
+              {label}
+            </div>
+          ) : (
+            <Button onClick={action} disabled={isConnecting} className="min-w-36">
+              <PlugZap className="h-5 w-5" />
+              {label}
+            </Button>
+          )}
+          {account ? (
+            <Button
+              variant="red"
+              onClick={signOut}
+              disabled={isConnecting}
+              className="min-w-0 px-3"
+            >
+              <LogOut className="h-5 w-5" />
+              Disconnect
+            </Button>
+          ) : null}
         </div>
       </div>
     </header>
