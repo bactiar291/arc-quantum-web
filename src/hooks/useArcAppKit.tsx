@@ -495,6 +495,7 @@ export function ArcKitProvider({ children }: { children: ReactNode }) {
   const [authToken, setAuthToken] = useState<string | null>(null)
   const [signInExpiresAt, setSignInExpiresAt] = useState(0)
   const [lastError, setLastError] = useState<string | null>(null)
+  const [manualDisconnected, setManualDisconnectedState] = useState(isManualDisconnect)
   const privy = usePrivyBridge()
   const setWallet = useAppStore((state) => state.setWallet)
   const addToken = useAppStore((state) => state.addToken)
@@ -511,6 +512,11 @@ export function ArcKitProvider({ children }: { children: ReactNode }) {
     setAuthToken(null)
     setSignInExpiresAt(0)
   }, [setWallet])
+
+  const updateManualDisconnect = useCallback((value: boolean) => {
+    setManualDisconnect(value)
+    setManualDisconnectedState(value)
+  }, [])
 
   const resolveProvider = useCallback(async () => {
     const privyProvider = await privy.getProvider()
@@ -592,6 +598,11 @@ export function ArcKitProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!privy.enabled) return
+    if (manualDisconnected) {
+      resetWalletState()
+      sessionStorage.removeItem(PRIVY_ACCESS_TOKEN_STORAGE_KEY)
+      return
+    }
     if (!privy.ready) return
     if (!privy.account) {
       resetWalletState()
@@ -604,10 +615,24 @@ export function ArcKitProvider({ children }: { children: ReactNode }) {
     return () => {
       alive = false
     }
-  }, [buildAdapter, privy.account, privy.enabled, privy.ready, resetWalletState])
+  }, [
+    buildAdapter,
+    manualDisconnected,
+    privy.account,
+    privy.enabled,
+    privy.ready,
+    resetWalletState
+  ])
 
   useEffect(() => {
     if (!privy.enabled) return
+    if (manualDisconnected) {
+      setAuthToken(null)
+      setIsSignedIn(false)
+      setSignInExpiresAt(0)
+      sessionStorage.removeItem(PRIVY_ACCESS_TOKEN_STORAGE_KEY)
+      return
+    }
     if (privy.accessToken) {
       setAuthToken(privy.accessToken)
       setIsSignedIn(true)
@@ -615,7 +640,7 @@ export function ArcKitProvider({ children }: { children: ReactNode }) {
       return
     }
     if (account) applyStoredAuth(account)
-  }, [account, applyStoredAuth, privy.accessToken, privy.enabled])
+  }, [account, applyStoredAuth, manualDisconnected, privy.accessToken, privy.enabled])
 
   const switchToArc = useCallback(async () => {
     const provider = await resolveProvider()
@@ -645,14 +670,21 @@ export function ArcKitProvider({ children }: { children: ReactNode }) {
     setIsConnecting(true)
     setLastError(null)
     const wasManualDisconnect = isManualDisconnect()
-    setManualDisconnect(false)
+    updateManualDisconnect(false)
     try {
-      if (
-        privy.enabled &&
-        (wasManualDisconnect || !privy.ready || !privy.authenticated || !privy.account)
-      ) {
-        await privy.connect()
-        return
+      if (privy.enabled) {
+        if (wasManualDisconnect) {
+          await privy.connect()
+          if (privy.authenticated && privy.account) {
+            await buildAdapter(false)
+            await switchToArc()
+          }
+          return
+        }
+        if (!privy.ready || !privy.authenticated || !privy.account) {
+          await privy.connect()
+          return
+        }
       }
       await buildAdapter(true)
       await switchToArc()
@@ -661,12 +693,12 @@ export function ArcKitProvider({ children }: { children: ReactNode }) {
     } finally {
       setIsConnecting(false)
     }
-  }, [buildAdapter, privy, switchToArc])
+  }, [buildAdapter, privy, switchToArc, updateManualDisconnect])
 
   const signIn = useCallback(async () => {
     setIsConnecting(true)
     setLastError(null)
-    setManualDisconnect(false)
+    updateManualDisconnect(false)
     try {
       if (privy.enabled && (!privy.authenticated || !privy.account)) {
         await privy.connect()
@@ -687,13 +719,13 @@ export function ArcKitProvider({ children }: { children: ReactNode }) {
     } finally {
       setIsConnecting(false)
     }
-  }, [account, adapter, buildAdapter, privy, resolveProvider, switchToArc])
+  }, [account, adapter, buildAdapter, privy, resolveProvider, switchToArc, updateManualDisconnect])
 
   const signOut = useCallback(async () => {
     setIsConnecting(true)
     setLastError(null)
     clearStoredSignIn(account)
-    setManualDisconnect(true)
+    updateManualDisconnect(true)
     resetWalletState()
     sessionStorage.removeItem(PRIVY_ACCESS_TOKEN_STORAGE_KEY)
     try {
@@ -703,7 +735,7 @@ export function ArcKitProvider({ children }: { children: ReactNode }) {
     } finally {
       setIsConnecting(false)
     }
-  }, [account, privy, resetWalletState])
+  }, [account, privy, resetWalletState, updateManualDisconnect])
 
   const readyAdapter = useCallback(async () => {
     await switchToArc()
@@ -974,11 +1006,11 @@ export function ArcKitProvider({ children }: { children: ReactNode }) {
       authSignature,
       authToken,
       privyEnabled: privy.enabled,
-      privyAuthenticated: privy.authenticated,
-      privyServerVerified: privy.serverVerified,
-      privyServerAuthError: privy.serverAuthError,
-      privyUserId: privy.userId,
-      walletLabel: privy.walletLabel,
+      privyAuthenticated: !manualDisconnected && privy.authenticated,
+      privyServerVerified: manualDisconnected ? null : privy.serverVerified,
+      privyServerAuthError: manualDisconnected ? null : privy.serverAuthError,
+      privyUserId: manualDisconnected ? null : privy.userId,
+      walletLabel: manualDisconnected ? null : privy.walletLabel,
       signInExpiresAt,
       lastError,
       connect,
@@ -1006,6 +1038,7 @@ export function ArcKitProvider({ children }: { children: ReactNode }) {
       isSignedIn,
       isConnecting,
       lastError,
+      manualDisconnected,
       privy.authenticated,
       privy.enabled,
       privy.serverAuthError,
