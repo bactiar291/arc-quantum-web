@@ -164,7 +164,9 @@ function PrivyBridge({ children }: { children: ReactNode }) {
   }, [accessToken])
 
   const connect = useCallback(async () => {
-    if (!ready) return
+    if (!ready) {
+      throw new Error('Privy auth masih loading. Tunggu sebentar lalu klik Login lagi.')
+    }
     if (!authenticated) {
       login({
         loginMethods: ['email', 'wallet', 'google', 'twitter', 'discord']
