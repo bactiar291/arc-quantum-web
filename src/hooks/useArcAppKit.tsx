@@ -20,6 +20,7 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useState,
   type ReactNode
@@ -87,14 +88,25 @@ interface DeployResult {
   contractAddress: Address
 }
 
+interface StoredSignIn {
+  account: Address
+  signature: Hex
+  issuedAt: string
+  expiresAt: number
+}
+
 interface ArcKitContextValue {
   account: Address | null
   chainId: number | null
   isConnected: boolean
   isConnecting: boolean
   isSignedIn: boolean
+  authSignature: Hex | null
+  signInExpiresAt: number
   lastError: string | null
   connect: () => Promise<void>
+  signIn: () => Promise<void>
+  signOut: () => void
   switchToArc: () => Promise<void>
   estimateSwap: (request: SwapRequest) => Promise<SwapEstimate>
   executeSwap: (request: SwapRequest) => Promise<SwapResult>
@@ -104,6 +116,8 @@ interface ArcKitContextValue {
 }
 
 const ArcKitContext = createContext<ArcKitContextValue | null>(null)
+const signInStorageKey = 'arc_quantum_signin_v1'
+const signInLifetimeMs = 7 * 24 * 60 * 60 * 1000
 
 function getProvider() {
   const provider = window.ethereum
@@ -150,7 +164,48 @@ async function requestAccounts(provider: EIP1193Provider) {
   return accounts[0]
 }
 
-async function signInWallet(provider: EIP1193Provider, address: Address) {
+async function authorizedAccount(provider: EIP1193Provider) {
+  const accounts = (await provider.request({ method: 'eth_accounts' })) as Address[]
+  return accounts[0] && isAddress(accounts[0]) ? accounts[0] : null
+}
+
+function readStoredSignIns() {
+  const raw = localStorage.getItem(signInStorageKey)
+  if (!raw) return {} as Record<string, StoredSignIn>
+  try {
+    return JSON.parse(raw) as Record<string, StoredSignIn>
+  } catch {
+    localStorage.removeItem(signInStorageKey)
+    return {} as Record<string, StoredSignIn>
+  }
+}
+
+function clearStoredSignIn(account?: Address | null) {
+  if (!account) {
+    localStorage.removeItem(signInStorageKey)
+    return
+  }
+  const stored = readStoredSignIns()
+  delete stored[account.toLowerCase()]
+  localStorage.setItem(signInStorageKey, JSON.stringify(stored))
+}
+
+function readStoredSignIn(account: Address) {
+  const stored = readStoredSignIns()[account.toLowerCase()]
+  if (!stored || stored.expiresAt <= Date.now()) {
+    if (stored) clearStoredSignIn(account)
+    return null
+  }
+  return stored
+}
+
+function saveStoredSignIn(auth: StoredSignIn) {
+  const stored = readStoredSignIns()
+  stored[auth.account.toLowerCase()] = auth
+  localStorage.setItem(signInStorageKey, JSON.stringify(stored))
+}
+
+async function signInWallet(provider: EIP1193Provider, address: Address): Promise<StoredSignIn> {
   const looseProvider = provider as {
     request: (args: { method: string; params?: unknown[] }) => Promise<unknown>
   }
@@ -159,6 +214,8 @@ async function signInWallet(provider: EIP1193Provider, address: Address) {
     .map((byte) => byte.toString(16).padStart(2, '0'))
     .join('')}` as Hex
   const issuedAt = new Date().toISOString()
+  const expiresAt = Date.now() + signInLifetimeMs
+  const expiresAtIso = new Date(expiresAt).toISOString()
   const typedData = {
     domain: {
       name: 'Arc Quantum Lab',
@@ -175,7 +232,8 @@ async function signInWallet(provider: EIP1193Provider, address: Address) {
         { name: 'wallet', type: 'address' },
         { name: 'statement', type: 'string' },
         { name: 'nonce', type: 'bytes32' },
-        { name: 'issuedAt', type: 'string' }
+        { name: 'issuedAt', type: 'string' },
+        { name: 'expiresAt', type: 'string' }
       ]
     },
     primaryType: 'SignIn',
@@ -183,25 +241,28 @@ async function signInWallet(provider: EIP1193Provider, address: Address) {
       wallet: address,
       statement: 'Lock this wallet for Arc Quantum Lab testnet actions.',
       nonce,
-      issuedAt
+      issuedAt,
+      expiresAt: expiresAtIso
     }
   }
 
   try {
-    return (await provider.request({
+    const signature = (await provider.request({
       method: 'eth_signTypedData_v4',
       params: [address, JSON.stringify(typedData)]
     })) as Hex
+    return { account: address, signature, issuedAt, expiresAt }
   } catch (error) {
     const code = (error as { code?: number }).code
     if (code === 4001) throw error
-    return (await looseProvider.request({
+    const signature = (await looseProvider.request({
       method: 'personal_sign',
       params: [
-        `Arc Quantum Lab sign in\nWallet: ${address}\nNonce: ${nonce}\nIssued: ${issuedAt}`,
+        `Arc Quantum Lab sign in\nWallet: ${address}\nNonce: ${nonce}\nIssued: ${issuedAt}\nExpires: ${expiresAtIso}`,
         address
       ]
     })) as Hex
+    return { account: address, signature, issuedAt, expiresAt }
   }
 }
 
@@ -250,17 +311,25 @@ export function ArcKitProvider({ children }: { children: ReactNode }) {
   const [chainId, setChainId] = useState<number | null>(null)
   const [isConnecting, setIsConnecting] = useState(false)
   const [isSignedIn, setIsSignedIn] = useState(false)
+  const [authSignature, setAuthSignature] = useState<Hex | null>(null)
+  const [signInExpiresAt, setSignInExpiresAt] = useState(0)
   const [lastError, setLastError] = useState<string | null>(null)
   const setWallet = useAppStore((state) => state.setWallet)
   const addToken = useAppStore((state) => state.addToken)
   const track = useTrackedTx()
   const kit = useMemo(() => new AppKit(), [])
 
-  const buildAdapter = useCallback(async () => {
+  const applyStoredAuth = useCallback((address: Address) => {
+    const stored = readStoredSignIn(address)
+    setIsSignedIn(Boolean(stored))
+    setAuthSignature(stored?.signature ?? null)
+    setSignInExpiresAt(stored?.expiresAt ?? 0)
+  }, [])
+
+  const buildAdapter = useCallback(async (request = true) => {
     const provider = getProvider()
-    const address = await requestAccounts(provider)
-    setIsSignedIn(false)
-    await signInWallet(provider, address)
+    const address = request ? await requestAccounts(provider) : await authorizedAccount(provider)
+    if (!address) throw new Error('Wallet belum connected.')
     const nextAdapter = await createViemAdapterFromProvider({
       provider,
       capabilities: { addressContext: 'user-controlled' },
@@ -275,11 +344,54 @@ export function ArcKitProvider({ children }: { children: ReactNode }) {
     })
     setAdapter(nextAdapter)
     setAccount(address)
-    setIsSignedIn(true)
     setWallet(address, true)
+    applyStoredAuth(address)
     setChainId(await currentChainId(provider))
-    return nextAdapter
-  }, [setWallet])
+    return { adapter: nextAdapter, address }
+  }, [applyStoredAuth, setWallet])
+
+  useEffect(() => {
+    const provider = window.ethereum
+    if (!provider) return
+    let alive = true
+    const walletEvents = provider as EIP1193Provider & {
+      on?: (event: string, handler: (...args: unknown[]) => void) => void
+      removeListener?: (event: string, handler: (...args: unknown[]) => void) => void
+    }
+    const resetAuth = () => {
+      setWallet(null, false)
+      setAccount(null)
+      setAdapter(null)
+      setIsSignedIn(false)
+      setAuthSignature(null)
+      setSignInExpiresAt(0)
+    }
+    const restore = async () => {
+      try {
+        const result = await buildAdapter(false)
+        if (!alive) return
+        applyStoredAuth(result.address)
+      } catch {
+        if (alive) resetAuth()
+      }
+    }
+    const handleAccountsChanged = () => {
+      void restore()
+    }
+    const handleChainChanged = () => {
+      void currentChainId(provider).then((nextChainId) => {
+        if (alive) setChainId(nextChainId)
+      })
+    }
+    void restore()
+    walletEvents.on?.('accountsChanged', handleAccountsChanged)
+    walletEvents.on?.('chainChanged', handleChainChanged)
+    return () => {
+      alive = false
+      walletEvents.removeListener?.('accountsChanged', handleAccountsChanged)
+      walletEvents.removeListener?.('chainChanged', handleChainChanged)
+    }
+  }, [applyStoredAuth, buildAdapter, setWallet])
 
   const switchToArc = useCallback(async () => {
     const provider = getProvider()
@@ -309,8 +421,8 @@ export function ArcKitProvider({ children }: { children: ReactNode }) {
     setIsConnecting(true)
     setLastError(null)
     try {
+      await buildAdapter(true)
       await switchToArc()
-      await buildAdapter()
     } catch (error) {
       setLastError(normalizeError(error))
       throw error
@@ -319,9 +431,36 @@ export function ArcKitProvider({ children }: { children: ReactNode }) {
     }
   }, [buildAdapter, switchToArc])
 
+  const signIn = useCallback(async () => {
+    setIsConnecting(true)
+    setLastError(null)
+    try {
+      const provider = getProvider()
+      const result = account && adapter ? { adapter, address: account } : await buildAdapter(true)
+      await switchToArc()
+      const auth = await signInWallet(provider, result.address)
+      saveStoredSignIn(auth)
+      setIsSignedIn(true)
+      setAuthSignature(auth.signature)
+      setSignInExpiresAt(auth.expiresAt)
+    } catch (error) {
+      setLastError(normalizeError(error))
+      throw error
+    } finally {
+      setIsConnecting(false)
+    }
+  }, [account, adapter, buildAdapter, switchToArc])
+
+  const signOut = useCallback(() => {
+    clearStoredSignIn(account)
+    setIsSignedIn(false)
+    setAuthSignature(null)
+    setSignInExpiresAt(0)
+  }, [account])
+
   const readyAdapter = useCallback(async () => {
     await switchToArc()
-    return adapter ?? (await buildAdapter())
+    return adapter ?? (await buildAdapter(true)).adapter
   }, [adapter, buildAdapter, switchToArc])
 
   const estimateSwap = useCallback(
@@ -400,7 +539,7 @@ export function ArcKitProvider({ children }: { children: ReactNode }) {
         } else {
           await switchToArc()
         }
-        const activeAdapter = adapter ?? (await buildAdapter())
+        const activeAdapter = adapter ?? (await buildAdapter(true)).adapter
         const result = await kit.bridge({
           from: {
             adapter: activeAdapter,
@@ -487,8 +626,12 @@ export function ArcKitProvider({ children }: { children: ReactNode }) {
       isConnected: Boolean(account),
       isConnecting,
       isSignedIn,
+      authSignature,
+      signInExpiresAt,
       lastError,
       connect,
+      signIn,
+      signOut,
       switchToArc,
       estimateSwap,
       executeSwap,
@@ -498,6 +641,7 @@ export function ArcKitProvider({ children }: { children: ReactNode }) {
     }),
     [
       account,
+      authSignature,
       bridgeUsdc,
       chainId,
       connect,
@@ -507,6 +651,9 @@ export function ArcKitProvider({ children }: { children: ReactNode }) {
       isSignedIn,
       isConnecting,
       lastError,
+      signIn,
+      signInExpiresAt,
+      signOut,
       sendToken,
       switchToArc
     ]

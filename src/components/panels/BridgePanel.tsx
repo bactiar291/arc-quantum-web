@@ -17,7 +17,7 @@ export function BridgePanel() {
   const [status, setStatus] = useState('')
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
-  const { account, bridgeUsdc, connect, isConnected, isConnecting } =
+  const { account, bridgeUsdc, connect, isConnected, isConnecting, isSignedIn, signIn } =
     useArcAppKit()
 
   const fromChain = direction === 'SEPOLIA_TO_ARC' ? 'SEPOLIA' : 'ARC'
@@ -108,7 +108,11 @@ export function BridgePanel() {
 
         {!isConnected ? (
           <Button className="w-full" onClick={connect} disabled={isConnecting}>
-            Sign In Wallet
+            Connect Wallet
+          </Button>
+        ) : !isSignedIn ? (
+          <Button className="w-full" variant="cyan" onClick={signIn} disabled={isConnecting}>
+            Sign In To Unlock
           </Button>
         ) : (
           <Button

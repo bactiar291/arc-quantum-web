@@ -19,7 +19,7 @@ export function OfficialSwapPanel() {
   const [quoteBusy, setQuoteBusy] = useState(false)
   const [swapBusy, setSwapBusy] = useState(false)
   const quoteRequest = useRef(0)
-  const { connect, estimateSwap, executeSwap, isConnected, isConnecting } =
+  const { connect, estimateSwap, executeSwap, isConnected, isConnecting, isSignedIn, signIn } =
     useArcAppKit()
 
   const tokenIn = direction === 'USDC_TO_EURC' ? USDC_TOKEN : EURC_TOKEN
@@ -39,7 +39,7 @@ export function OfficialSwapPanel() {
 
   const runQuote = useCallback(async () => {
     if (!isConnected) {
-      setQuote('SIGN IN WALLET FOR LIVE QUOTE')
+      setQuote('CONNECT WALLET FOR LIVE QUOTE')
       return
     }
     if (!validAmount) {
@@ -66,7 +66,7 @@ export function OfficialSwapPanel() {
 
   useEffect(() => {
     if (!isConnected) {
-      setQuote('SIGN IN WALLET FOR LIVE QUOTE')
+      setQuote('CONNECT WALLET FOR LIVE QUOTE')
       return
     }
     if (!validAmount) {
@@ -173,7 +173,11 @@ export function OfficialSwapPanel() {
 
         {!isConnected ? (
           <Button className="w-full" onClick={connect} disabled={isConnecting}>
-            Sign In Arc Wallet
+            Connect Arc Wallet
+          </Button>
+        ) : !isSignedIn ? (
+          <Button className="w-full" variant="cyan" onClick={signIn} disabled={isConnecting}>
+            Sign In To Unlock
           </Button>
         ) : (
           <Button className="w-full" onClick={runSwap} disabled={disabled}>

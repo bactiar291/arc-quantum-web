@@ -2,6 +2,7 @@ import { useBlockNumber } from 'wagmi'
 
 import { useArcAppKit } from '../hooks/useArcAppKit'
 import { ARC_CHAIN_ID } from '../lib/arc'
+import { useAppStore } from '../store/useAppStore'
 
 export function StatusBar() {
   const { data: blockNumber } = useBlockNumber({
@@ -9,6 +10,7 @@ export function StatusBar() {
     watch: true
   })
   const { account, isSignedIn } = useArcAppKit()
+  const gasMode = useAppStore((state) => state.gasMode)
 
   return (
     <footer className="fixed bottom-0 left-0 right-0 z-30 border-t-2 border-white bg-black px-4 py-2 font-mono text-[11px] uppercase text-white md:px-6">
@@ -21,8 +23,8 @@ export function StatusBar() {
         </span>
         <span>
           EXECUTION:{' '}
-          <b className="text-quantum-yellow">
-            WALLET GAS
+          <b className={gasMode === 'sponsor' ? 'text-quantum-orange' : 'text-quantum-yellow'}>
+            {gasMode === 'sponsor' ? 'SPONSOR REQUESTED' : 'WALLET GAS'}
           </b>
         </span>
         <span>

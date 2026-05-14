@@ -1,8 +1,11 @@
 import { Fuel, KeyRound, ShieldCheck, TriangleAlert } from 'lucide-react'
+import { useState } from 'react'
 
 import {
   envStatus,
 } from '../../lib/env'
+import { useArcAppKit } from '../../hooks/useArcAppKit'
+import { useAppStore } from '../../store/useAppStore'
 import { Button } from '../ui/Button'
 import { Panel } from '../ui/Panel'
 
@@ -27,6 +30,10 @@ function StatusRow({
 }
 
 export function GasPanel() {
+  const [showSignature, setShowSignature] = useState(false)
+  const gasMode = useAppStore((state) => state.gasMode)
+  const setGasMode = useAppStore((state) => state.setGasMode)
+  const { account, authSignature, isSignedIn, signInExpiresAt, signOut } = useArcAppKit()
   const aaPrepared =
     envStatus.circleKit &&
     envStatus.zeroDevProject &&
@@ -41,6 +48,30 @@ export function GasPanel() {
       </div>
 
       <div className="space-y-3">
+        <div className="grid gap-3 md:grid-cols-2">
+          <Button
+            variant={gasMode === 'wallet' ? 'cyan' : 'ghost'}
+            onClick={() => setGasMode('wallet')}
+          >
+            Wallet Gas
+          </Button>
+          <Button
+            variant={gasMode === 'sponsor' ? 'orange' : 'ghost'}
+            onClick={() => setGasMode('sponsor')}
+          >
+            Sponsor Gas
+          </Button>
+        </div>
+
+        <div className="border-2 border-white bg-black p-3 font-mono text-xs uppercase leading-5">
+          <div className="text-white/55">Selected Mode</div>
+          <div className={gasMode === 'sponsor' ? 'text-quantum-orange' : 'text-quantum-cyan'}>
+            {gasMode === 'sponsor'
+              ? 'Sponsor requested. Needs ZeroDev UserOperation path before tx can be gasless.'
+              : 'Wallet gas live. MetaMask popup expected.'}
+          </div>
+        </div>
+
         <StatusRow
           label="Circle Kit"
           value="SERVER PROXY"
@@ -89,6 +120,54 @@ export function GasPanel() {
         <div className="border-2 border-quantum-orange bg-black p-3 font-mono text-xs uppercase leading-5 text-quantum-orange">
           Sponsor gas needs ZeroDev smart-account execution. Current swap/bridge/send
           uses Circle App Kit wallet signer, so MetaMask popup is expected.
+        </div>
+
+        <div className="border-2 border-quantum-purple bg-black p-3 font-mono text-xs uppercase leading-5">
+          <div className="mb-2 flex items-center justify-between gap-3">
+            <div>
+              <div className="text-white/55">Sign-In Proof Vault</div>
+              <div className={isSignedIn ? 'text-quantum-green' : 'text-quantum-orange'}>
+                {isSignedIn ? 'LOCKED / persisted 7 days' : 'Not signed in'}
+              </div>
+            </div>
+            <Button
+              variant="ghost"
+              className="min-h-8 px-2 py-1 text-base"
+              onClick={signOut}
+              disabled={!isSignedIn}
+            >
+              Reset Sign
+            </Button>
+          </div>
+          <div className="truncate text-white/55">Wallet {account ?? '-'}</div>
+          <div className="text-white/55">
+            Expiry {signInExpiresAt ? new Date(signInExpiresAt).toLocaleString() : '-'}
+          </div>
+          <div className="mt-2 break-all border-2 border-white bg-quantum-panel p-2 text-quantum-cyan">
+            {showSignature && authSignature ? authSignature : authSignature ? 'Signature hidden' : '-'}
+          </div>
+          <div className="mt-2 grid gap-2 sm:grid-cols-2">
+            <Button
+              variant="purple"
+              className="min-h-8 px-2 py-1 text-base"
+              onClick={() => setShowSignature((value) => !value)}
+              disabled={!authSignature}
+            >
+              {showSignature ? 'Hide Signature' : 'Reveal Signature'}
+            </Button>
+            <Button
+              variant="cyan"
+              className="min-h-8 px-2 py-1 text-base"
+              onClick={() => authSignature && navigator.clipboard.writeText(authSignature)}
+              disabled={!authSignature || !showSignature}
+            >
+              Copy Signature
+            </Button>
+          </div>
+          <div className="mt-3 border-2 border-quantum-yellow bg-black p-2 text-quantum-yellow">
+            EOA private key never enters this DApp. ZeroDev smart account and paymaster do
+            not have a user-revealable private key.
+          </div>
         </div>
 
         <Button variant={aaPrepared ? 'orange' : 'red'} className="w-full" disabled>

@@ -2,7 +2,8 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { Address, Hex } from 'viem'
 
-export type AppTab = 'swap' | 'liquidity' | 'send' | 'deploy'
+export type AppTab = 'swap' | 'liquidity' | 'send' | 'deploy' | 'bridge' | 'gas'
+export type GasMode = 'wallet' | 'sponsor'
 export type TxKind =
   | 'session'
   | 'swap'
@@ -47,6 +48,7 @@ interface AppState {
   pendingTx: Hex | null
   txHistory: Transaction[]
   activeTab: AppTab
+  gasMode: GasMode
   setWallet: (address: Address | null, isConnected: boolean) => void
   setSession: (
     key: Hex | null,
@@ -57,6 +59,7 @@ interface AppState {
   ) => void
   resetSession: () => void
   setActiveTab: (tab: AppTab) => void
+  setGasMode: (mode: GasMode) => void
   addToken: (token: Token) => void
   removeToken: (address: Address) => void
   setAmmConfig: (factory: Address | null, router: Address | null) => void
@@ -85,6 +88,7 @@ export const useAppStore = create<AppState>()(
       pendingTx: null,
       txHistory: [],
       activeTab: 'swap',
+      gasMode: 'wallet',
       setWallet: (address, isConnected) => set({ userAddress: address, isConnected }),
       setSession: (
         sessionKey,
@@ -109,6 +113,7 @@ export const useAppStore = create<AppState>()(
           sessionSignature: null
         }),
       setActiveTab: (activeTab) => set({ activeTab }),
+      setGasMode: (gasMode) => set({ gasMode }),
       addToken: (token) =>
         set((state) => {
           const next = state.deployedTokens.filter(
@@ -149,7 +154,8 @@ export const useAppStore = create<AppState>()(
         txHistory: state.txHistory,
         ammFactoryAddress: state.ammFactoryAddress,
         ammRouterAddress: state.ammRouterAddress,
-        activeTab: state.activeTab
+        activeTab: state.activeTab,
+        gasMode: state.gasMode
       })
     }
   )

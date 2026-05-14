@@ -22,7 +22,7 @@ export function StableSendPanel() {
   const [hash, setHash] = useState('')
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
-  const { connect, isConnected, isConnecting, sendToken } = useArcAppKit()
+  const { connect, isConnected, isConnecting, isSignedIn, sendToken, signIn } = useArcAppKit()
   const valid = isAddress(to)
 
   const run = async () => {
@@ -79,7 +79,11 @@ export function StableSendPanel() {
 
         {!isConnected ? (
           <Button className="w-full" onClick={connect} disabled={isConnecting}>
-            Sign In Arc Wallet
+            Connect Arc Wallet
+          </Button>
+        ) : !isSignedIn ? (
+          <Button className="w-full" variant="cyan" onClick={signIn} disabled={isConnecting}>
+            Sign In To Unlock
           </Button>
         ) : (
           <Button className="w-full" onClick={run} disabled={!valid || !amount || busy}>

@@ -48,7 +48,7 @@ export function DeployPanel() {
   const [txHash, setTxHash] = useState('')
   const [contractAddress, setContractAddress] = useState('')
   const [error, setError] = useState('')
-  const { connect, deployToken, isConnected, isConnecting } = useArcAppKit()
+  const { connect, deployToken, isConnected, isConnecting, isSignedIn, signIn } = useArcAppKit()
 
   const generate = () => {
     const suffix = Date.now().toString(36).toUpperCase().slice(-4)
@@ -128,7 +128,11 @@ export function DeployPanel() {
       <div className="mt-5">
         {!isConnected ? (
           <Button className="w-full" onClick={connect} disabled={isConnecting}>
-            Sign In Arc Wallet
+            Connect Arc Wallet
+          </Button>
+        ) : !isSignedIn ? (
+          <Button className="w-full" variant="cyan" onClick={signIn} disabled={isConnecting}>
+            Sign In To Unlock
           </Button>
         ) : (
           <Button className="w-full" onClick={() => void runDeploy()} disabled={busy}>
