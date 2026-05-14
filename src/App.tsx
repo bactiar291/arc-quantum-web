@@ -1,4 +1,4 @@
-import { GitBranchPlus, Rocket, Send, Shuffle, Terminal } from 'lucide-react'
+import { GitBranchPlus, Rocket, Send, Shuffle, Terminal, Waves } from 'lucide-react'
 import { useState } from 'react'
 
 import { Dashboard } from './components/Dashboard'
@@ -8,24 +8,27 @@ import { QuantumVisual } from './components/QuantumVisual'
 import { StatusBar } from './components/StatusBar'
 import { BridgePanel } from './components/panels/BridgePanel'
 import { DeployPanel } from './components/panels/DeployPanel'
+import { FaucetPanel } from './components/panels/FaucetPanel'
 import { OfficialSwapPanel } from './components/panels/OfficialSwapPanel'
 import { StableSendPanel } from './components/panels/StableSendPanel'
 import { Button } from './components/ui/Button'
 import { Panel } from './components/ui/Panel'
 import { ArcKitProvider } from './hooks/useArcAppKit'
 
-type TabId = 'swap' | 'send' | 'bridge' | 'deploy'
+type TabId = 'swap' | 'send' | 'bridge' | 'faucet' | 'deploy'
 
 const tabs: Array<{ id: TabId; label: string; icon: typeof Shuffle }> = [
   { id: 'swap', label: 'Swap', icon: Shuffle },
   { id: 'send', label: 'Send', icon: Send },
   { id: 'bridge', label: 'Bridge', icon: GitBranchPlus },
+  { id: 'faucet', label: 'Faucet', icon: Waves },
   { id: 'deploy', label: 'Deploy', icon: Rocket }
 ]
 
 function ActivePanel({ tab }: { tab: TabId }) {
   if (tab === 'send') return <StableSendPanel />
   if (tab === 'bridge') return <BridgePanel />
+  if (tab === 'faucet') return <FaucetPanel />
   if (tab === 'deploy') return <DeployPanel />
   return <OfficialSwapPanel />
 }
@@ -74,7 +77,7 @@ function Shell() {
               </div>
             </div>
 
-            <nav className="grid grid-cols-2 gap-3 md:grid-cols-4">
+            <nav className="grid grid-cols-2 gap-3 md:grid-cols-5">
               {tabs.map((tab) => {
                 const Icon = tab.icon
                 return (

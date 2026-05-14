@@ -11,7 +11,7 @@ const features = [
   { label: 'Swap', value: 'USDC <-> EURC', icon: Shuffle, color: 'text-quantum-cyan' },
   { label: 'Bridge', value: 'Sepolia <-> Arc', icon: GitBranchPlus, color: 'text-quantum-green' },
   { label: 'Send', value: 'Stable transfer', icon: Send, color: 'text-quantum-orange' },
-  { label: 'Sign', value: 'Wallet locked', icon: ShieldCheck, color: 'text-quantum-purple' }
+  { label: 'Sign', value: 'Wallet verify', icon: ShieldCheck, color: 'text-quantum-purple' }
 ]
 
 export function IntroGate({ onEnter }: IntroGateProps) {

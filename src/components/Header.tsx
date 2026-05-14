@@ -38,9 +38,6 @@ export function Header() {
           <div className="border-4 border-quantum-black bg-quantum-yellow px-3 py-2 font-mono text-[11px] uppercase text-quantum-ink shadow-[5px_5px_0_#111]">
             CHAIN <b className="text-quantum-cyan">{chainId || 'OFF'}</b>
           </div>
-          <div className="border-4 border-quantum-black bg-white px-3 py-2 font-mono text-[11px] uppercase text-quantum-ink shadow-[5px_5px_0_#111]">
-            SIGN <b className={isSignedIn ? 'text-quantum-green' : 'text-quantum-orange'}>{isSignedIn ? 'LOCKED' : 'REQ'}</b>
-          </div>
           <Button onClick={action} disabled={isConnecting} className="min-w-44">
             {isSignedIn ? <ShieldCheck className="h-5 w-5" /> : <PlugZap className="h-5 w-5" />}
             {label}

@@ -112,7 +112,7 @@ export function BridgePanel() {
           </Button>
         ) : !isSignedIn ? (
           <Button className="w-full" variant="cyan" onClick={signIn} disabled={isConnecting}>
-            Sign In To Unlock
+            Verify Wallet
           </Button>
         ) : (
           <Button

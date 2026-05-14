@@ -8,7 +8,7 @@ export function StatusBar() {
     chainId: ARC_CHAIN_ID,
     watch: true
   })
-  const { account, isSignedIn } = useArcAppKit()
+  const { account } = useArcAppKit()
 
   return (
     <footer className="fixed bottom-0 left-0 right-0 z-30 border-t-4 border-quantum-black bg-white px-4 py-2 font-mono text-[11px] uppercase text-quantum-black shadow-[0_-6px_0_#00C2A8] md:px-6">
@@ -22,12 +22,6 @@ export function StatusBar() {
         <span>
           EXECUTION:{' '}
           <b className="text-quantum-yellow">WALLET GAS</b>
-        </span>
-        <span>
-          SIGN:{' '}
-          <b className={isSignedIn ? 'text-quantum-green' : 'text-quantum-orange'}>
-            {isSignedIn ? 'LOCKED' : 'OFF'}
-          </b>
         </span>
         <span>
           BLOCK:{' '}
