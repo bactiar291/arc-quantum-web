@@ -1,30 +1,33 @@
-/* global URL, fetch */
+/* global URL, fetch, process */
 
 const TARGET = 'https://api.circle.com/v1/stablecoinKits'
+const PREFIX = '/api/circle/stablecoinKits/'
 
 export default async function handler(request, response) {
-  const path = Array.isArray(request.query.path)
-    ? request.query.path.join('/')
-    : request.query.path || ''
+  const incomingUrl = new URL(request.url, `https://${request.headers.host || 'localhost'}`)
+  const path = incomingUrl.pathname.startsWith(PREFIX)
+    ? incomingUrl.pathname.slice(PREFIX.length)
+    : ''
 
-  if (!/^(quote|swap|status)(\/|$)/.test(path)) {
+  if (!/^(quote|swap)(\/|$)/.test(path)) {
     response.status(404).json({ error: 'Unsupported Circle route' })
     return
   }
 
   const targetUrl = new URL(`${TARGET}/${path}`)
-  for (const [key, value] of Object.entries(request.query)) {
-    if (key === 'path') continue
-    if (Array.isArray(value)) {
-      value.forEach((item) => targetUrl.searchParams.append(key, item))
-    } else if (value !== undefined) {
-      targetUrl.searchParams.set(key, value)
-    }
+  for (const [key, value] of incomingUrl.searchParams.entries()) {
+    targetUrl.searchParams.append(key, value)
   }
+
+  const kitKey =
+    process.env.CIRCLE_KIT_KEY ||
+    process.env.VITE_CIRCLE_KIT_KEY ||
+    request.headers.authorization?.replace(/^Bearer\s+/i, '') ||
+    ''
 
   const headers = {
     'content-type': request.headers['content-type'] || 'application/json',
-    authorization: request.headers.authorization || ''
+    authorization: kitKey ? `Bearer ${kitKey}` : ''
   }
 
   try {

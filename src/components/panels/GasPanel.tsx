@@ -1,12 +1,7 @@
 import { Fuel, KeyRound, ShieldCheck } from 'lucide-react'
 
 import {
-  CIRCLE_KIT_KEY,
   envStatus,
-  redact,
-  ZERODEV_PASSKEY_SERVER_URL,
-  ZERODEV_PROJECT_ID,
-  ZERODEV_RPC_URL
 } from '../../lib/env'
 import { Button } from '../ui/Button'
 import { Panel } from '../ui/Panel'
@@ -48,22 +43,22 @@ export function GasPanel() {
       <div className="space-y-3">
         <StatusRow
           label="Circle Kit"
-          value={redact(CIRCLE_KIT_KEY)}
+          value="SERVER PROXY"
           ok={envStatus.circleKit}
         />
         <StatusRow
           label="ZeroDev Project"
-          value={redact(ZERODEV_PROJECT_ID)}
+          value="SERVER SIDE"
           ok={envStatus.zeroDevProject}
         />
         <StatusRow
           label="Passkey Server"
-          value={redact(ZERODEV_PASSKEY_SERVER_URL)}
+          value="SERVER SIDE"
           ok={envStatus.zeroDevPasskey}
         />
         <StatusRow
           label="Sponsored RPC"
-          value={redact(ZERODEV_RPC_URL)}
+          value="SERVER SIDE"
           ok={envStatus.zeroDevRpc}
         />
 

@@ -241,7 +241,6 @@ export function ArcKitProvider({ children }: { children: ReactNode }) {
   }, [buildAdapter, switchToArc])
 
   const readyAdapter = useCallback(async () => {
-    if (!CIRCLE_KIT_KEY) throw new Error('VITE_CIRCLE_KIT_KEY belum diset.')
     await switchToArc()
     return adapter ?? (await buildAdapter())
   }, [adapter, buildAdapter, switchToArc])
