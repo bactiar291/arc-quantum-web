@@ -1,6 +1,7 @@
 import { GitBranchPlus, Rocket, Send, Shuffle, Terminal, Waves } from 'lucide-react'
 import { useState } from 'react'
 
+import { ActionReactor, ProtocolMatrix, type ReactorTab } from './components/ActionReactor'
 import { Dashboard } from './components/Dashboard'
 import { Header } from './components/Header'
 import { IntroGate } from './components/IntroGate'
@@ -16,7 +17,7 @@ import { Button } from './components/ui/Button'
 import { Panel } from './components/ui/Panel'
 import { ArcKitProvider } from './hooks/useArcAppKit'
 
-type TabId = 'swap' | 'send' | 'bridge' | 'faucet' | 'deploy'
+type TabId = ReactorTab
 
 const tabs: Array<{ id: TabId; label: string; icon: typeof Shuffle }> = [
   { id: 'swap', label: 'Swap', icon: Shuffle },
@@ -97,6 +98,8 @@ function Shell() {
           </Panel>
 
           <ActivePanel tab={activeTab} />
+          <ActionReactor activeTab={activeTab} />
+          <ProtocolMatrix activeTab={activeTab} />
         </section>
 
         <aside className="space-y-5">

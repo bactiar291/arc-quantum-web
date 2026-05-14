@@ -2,11 +2,12 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { Address, Hex } from 'viem'
 
-export type AppTab = 'swap' | 'liquidity' | 'send' | 'deploy' | 'bridge'
+export type AppTab = 'swap' | 'liquidity' | 'send' | 'deploy' | 'bridge' | 'faucet'
 export type TxKind =
   | 'session'
   | 'swap'
   | 'liquidity'
+  | 'bridge'
   | 'send'
   | 'deploy'
   | 'approve'

@@ -300,6 +300,146 @@ select {
     #ffffff;
 }
 
+.reactor-bg {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(135deg, rgba(0, 229, 255, 0.18), transparent 34%),
+    linear-gradient(228deg, rgba(255, 77, 141, 0.2), transparent 42%),
+    radial-gradient(circle at 50% 42%, rgba(255, 214, 10, 0.22), transparent 34%),
+    #111111;
+}
+
+.reactor-bg::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.12) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.12) 1px, transparent 1px);
+  background-size: 42px 42px;
+  animation: reactor-grid 13s linear infinite;
+}
+
+.reactor-canvas-wrap {
+  position: absolute;
+  inset: 84px 0 92px;
+  z-index: 1;
+  overflow: hidden;
+}
+
+.reactor-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.reactor-fallback {
+  position: absolute;
+  inset: 18%;
+  border: 4px solid #ffffff;
+  background:
+    conic-gradient(from 0deg, var(--cyan), var(--yellow), var(--pink), var(--green), var(--cyan));
+  box-shadow: 10px 10px 0 var(--cyan);
+  animation: fallback-reactor 3.4s linear infinite;
+}
+
+.reactor-hud-line {
+  position: absolute;
+  left: 12%;
+  right: 12%;
+  height: 4px;
+  background: #ffffff;
+  box-shadow:
+    0 0 0 4px #111111,
+    0 0 22px rgba(0, 229, 255, 0.6);
+}
+
+.reactor-hud-a {
+  top: 16%;
+  animation: hud-slide 4.5s var(--ease) infinite alternate;
+}
+
+.reactor-hud-b {
+  bottom: 12%;
+  animation: hud-slide 5.2s var(--ease) infinite alternate-reverse;
+}
+
+.signal-stream {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(0, 229, 255, 0.34),
+    rgba(255, 214, 10, 0.34),
+    transparent
+  );
+  transform: translateX(-110%);
+  animation: signal-sweep 2.4s linear infinite;
+}
+
+.route-cell {
+  position: relative;
+  min-height: 190px;
+  overflow: hidden;
+  border: 4px solid var(--ink);
+  background:
+    linear-gradient(135deg, rgba(0, 229, 255, 0.18), transparent 45%),
+    #ffffff;
+  padding: 14px;
+  box-shadow: 5px 5px 0 var(--ink);
+  isolation: isolate;
+}
+
+.route-cell::before {
+  content: '';
+  position: absolute;
+  inset: auto -20% 18px -20%;
+  height: 12px;
+  border-block: 4px solid var(--ink);
+  background: repeating-linear-gradient(
+    90deg,
+    var(--yellow) 0 28px,
+    var(--cyan) 28px 56px,
+    var(--pink) 56px 84px,
+    var(--green) 84px 112px
+  );
+  animation: matrix-route 2.8s linear infinite;
+  animation-delay: var(--route-delay, 0ms);
+}
+
+.route-cell-active {
+  background:
+    linear-gradient(135deg, rgba(255, 214, 10, 0.5), transparent 42%),
+    linear-gradient(230deg, rgba(255, 77, 141, 0.18), transparent 44%),
+    #ffffff;
+  box-shadow: 7px 7px 0 var(--cyan);
+}
+
+.matrix-marquee {
+  display: inline-block;
+  min-width: 100%;
+  padding-left: 100%;
+  white-space: nowrap;
+  animation: matrix-marquee 14s linear infinite;
+}
+
+.matrix-step {
+  position: relative;
+  overflow: hidden;
+}
+
+.matrix-step::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg, transparent, rgba(138, 92, 246, 0.18), transparent);
+  transform: translateX(-110%);
+  animation: signal-sweep 3s linear infinite;
+  animation-delay: var(--route-delay, 0ms);
+}
+
 @keyframes mesh-drift {
   0% {
     background-position: 0% 0%;
@@ -354,6 +494,63 @@ select {
   }
 }
 
+@keyframes reactor-grid {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 84px 42px;
+  }
+}
+
+@keyframes fallback-reactor {
+  0% {
+    transform: rotate(0deg) scale(0.94);
+  }
+  50% {
+    transform: rotate(180deg) scale(1.02);
+  }
+  100% {
+    transform: rotate(360deg) scale(0.94);
+  }
+}
+
+@keyframes hud-slide {
+  0% {
+    transform: translateX(-5%) skewX(-10deg);
+  }
+  100% {
+    transform: translateX(5%) skewX(10deg);
+  }
+}
+
+@keyframes signal-sweep {
+  0% {
+    transform: translateX(-110%);
+  }
+  100% {
+    transform: translateX(110%);
+  }
+}
+
+@keyframes matrix-route {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(112px);
+  }
+}
+
+@keyframes matrix-marquee {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
 @media (max-width: 640px) {
   .quantum-stage {
     inset: 110px 8px 72px;
@@ -361,5 +558,9 @@ select {
 
   .paint-core {
     width: 210px;
+  }
+
+  .reactor-canvas-wrap {
+    inset: 118px 0 140px;
   }
 }

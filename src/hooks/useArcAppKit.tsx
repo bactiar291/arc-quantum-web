@@ -703,7 +703,7 @@ export function ArcKitProvider({ children }: { children: ReactNode }) {
         direction === 'SEPOLIA_TO_ARC'
           ? 'Bridge USDC Sepolia to Arc'
           : 'Bridge USDC Arc to Sepolia'
-      const tracked = await track('send', summary, async () => {
+      const tracked = await track('bridge', summary, async () => {
         if (direction === 'SEPOLIA_TO_ARC') {
           await switchToSepolia()
         } else {
