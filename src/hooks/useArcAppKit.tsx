@@ -185,6 +185,18 @@ function bridgeHash(result: BridgeResult) {
   return step?.txHash?.startsWith('0x') ? (step.txHash as Hex) : undefined
 }
 
+function bridgeStepLabel(step: BridgeStep, index: number) {
+  const hash = step.txHash?.startsWith('0x') ? ` tx=${step.txHash.slice(0, 10)}...` : ''
+  const reason = step.errorMessage ? ` reason=${step.errorMessage}` : ''
+  return `${index + 1}. ${step.name}: ${step.state}${hash}${reason}`
+}
+
+function assertBridgeSubmitted(result: BridgeResult) {
+  if (result.state !== 'error') return
+  const details = result.steps.map(bridgeStepLabel).join(' | ')
+  throw new Error(`Bridge failed before completion. ${details || 'No step details.'}`)
+}
+
 async function requestAccounts(provider: EIP1193Provider) {
   const accounts = (await provider.request({
     method: 'eth_requestAccounts'
@@ -742,12 +754,17 @@ export function ArcKitProvider({ children }: { children: ReactNode }) {
           ? 'Bridge USDC Sepolia to Arc'
           : 'Bridge USDC Arc to Sepolia'
       const tracked = await track('bridge', summary, async () => {
+        if (!recipient) throw new Error('Recipient bridge wajib valid.')
         if (direction === 'SEPOLIA_TO_ARC') {
           await switchToSepolia()
         } else {
           await switchToArc()
         }
         const activeAdapter = adapter ?? (await buildAdapter(true)).adapter
+        const destinationChain =
+          direction === 'SEPOLIA_TO_ARC'
+            ? BridgeChain.Arc_Testnet
+            : BridgeChain.Ethereum_Sepolia
         const result = await kit.bridge({
           from: {
             adapter: activeAdapter,
@@ -757,12 +774,9 @@ export function ArcKitProvider({ children }: { children: ReactNode }) {
                 : BridgeChain.Arc_Testnet
           },
           to: {
-            adapter: activeAdapter,
-            chain:
-              direction === 'SEPOLIA_TO_ARC'
-                ? BridgeChain.Arc_Testnet
-                : BridgeChain.Ethereum_Sepolia,
-            recipientAddress: recipient
+            chain: destinationChain,
+            recipientAddress: recipient,
+            useForwarder: true
           },
           amount,
           token: 'USDC',
@@ -770,6 +784,7 @@ export function ArcKitProvider({ children }: { children: ReactNode }) {
             transferSpeed: TransferSpeed.FAST
           }
         })
+        assertBridgeSubmitted(result)
         return { hash: bridgeHash(result), value: result }
       })
       if (!tracked.value) throw new Error('Bridge result kosong.')

@@ -201,6 +201,20 @@ select {
   box-shadow: 3px 3px 0 var(--ink);
 }
 
+.marker-blue {
+  display: inline;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  background:
+    linear-gradient(
+      100deg,
+      transparent 0 5%,
+      rgba(0, 216, 255, 0.56) 5% 91%,
+      transparent 91% 100%
+    );
+  padding: 0 3px;
+}
+
 .compact-action-panel > div:first-child {
   border-bottom-width: 2px;
   margin-bottom: 10px;

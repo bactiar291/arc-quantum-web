@@ -15,6 +15,7 @@ export function BridgePanel() {
   const [recipient, setRecipient] = useState('')
   const [customRecipient, setCustomRecipient] = useState(false)
   const [status, setStatus] = useState('')
+  const [txHash, setTxHash] = useState('')
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
   const { account, bridgeUsdc, connect, isConnected, isConnecting, isSignedIn, signIn } =
@@ -30,12 +31,14 @@ export function BridgePanel() {
       value === 'SEPOLIA_TO_ARC' ? 'ARC_TO_SEPOLIA' : 'SEPOLIA_TO_ARC'
     )
     setStatus('')
+    setTxHash('')
     setError('')
   }
 
   const run = async () => {
     setBusy(true)
     setStatus('')
+    setTxHash('')
     setError('')
     try {
       const result = await bridgeUsdc({
@@ -43,7 +46,13 @@ export function BridgePanel() {
         direction,
         recipient: target as Address
       })
-      setStatus(`${result.state.toUpperCase()} / ${result.steps.length} STEPS`)
+      const hash = [...result.steps].reverse().find((step) => step.txHash)?.txHash ?? ''
+      setTxHash(hash)
+      setStatus(
+        result.state === 'success'
+          ? 'BRIDGE SUBMITTED / FORWARDER MINT'
+          : 'BRIDGE PENDING / FORWARDER MINT'
+      )
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : String(caught))
     } finally {
@@ -127,8 +136,9 @@ export function BridgePanel() {
         )}
 
         {status ? (
-          <div className="border-4 border-quantum-black bg-quantum-green p-3 font-mono text-xs text-quantum-black shadow-[5px_5px_0_#111]">
-            {status}
+          <div className="space-y-1 border-4 border-quantum-black bg-quantum-green p-3 font-mono text-xs text-quantum-black shadow-[5px_5px_0_#111]">
+            <div>{status}</div>
+            {txHash ? <div className="break-all text-quantum-black/65">{txHash}</div> : null}
           </div>
         ) : null}
         {error ? (

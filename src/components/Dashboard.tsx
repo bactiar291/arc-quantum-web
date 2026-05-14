@@ -34,12 +34,14 @@ function BalanceRow({
   return (
     <div className="border-2 border-quantum-black bg-white p-2 font-mono text-[10px] uppercase shadow-[2px_2px_0_#111]">
       <div className="mb-1 flex items-center justify-between gap-3">
-        <span className="text-quantum-black/55">{chain}</span>
+        <span className="marker-blue text-quantum-black">{chain}</span>
         <span className="text-quantum-yellow">{symbol}</span>
       </div>
       <div className="grid grid-cols-[1fr_auto] gap-3">
         <div className="min-w-0">
-          <div className="truncate text-quantum-black">{label}</div>
+          <div className="truncate text-quantum-black">
+            <span className="marker-blue">{label}</span>
+          </div>
           {address ? (
             <div className="truncate text-quantum-black/40">{address}</div>
           ) : (
