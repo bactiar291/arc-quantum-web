@@ -134,9 +134,9 @@ export function OfficialSwapPanel() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-[480px]">
-      <Panel className="animate-reveal" shadow="yellow">
-        <div className="mb-4 flex items-center justify-between">
+    <div className="mx-auto w-full max-w-[430px]">
+      <Panel className="compact-action-panel animate-reveal" shadow="yellow">
+        <div className="mb-3 flex items-center justify-between">
           <div className="flex items-center gap-2 font-display text-2xl">
             <Shuffle className="h-5 w-5 text-quantum-yellow" />
             Swap
@@ -151,19 +151,19 @@ export function OfficialSwapPanel() {
           </button>
         </div>
 
-        <div className="rounded-lg border-2 border-quantum-black/10 bg-quantum-paper p-4 hover:border-quantum-black/20">
+        <div className="border-2 border-quantum-black/10 bg-quantum-paper p-3 hover:border-quantum-black/20">
           <div className="mb-2 font-mono text-[11px] uppercase text-quantum-black/50">
             You pay
           </div>
           <div className="flex items-center gap-3">
             <Input
               aria-label="Amount to pay"
-              className="min-h-0 flex-1 border-0 bg-transparent p-0 text-2xl font-bold shadow-none focus:bg-transparent focus:shadow-none"
+              className="min-h-0 flex-1 border-0 bg-transparent p-0 text-xl font-bold shadow-none focus:bg-transparent focus:shadow-none"
               inputMode="decimal"
               value={amount}
               onChange={(event) => setAmount(event.target.value)}
             />
-            <div className="flex items-center gap-2 rounded-full border-2 border-quantum-black bg-quantum-yellow px-3 py-1.5">
+            <div className="flex items-center gap-2 border-2 border-quantum-black bg-quantum-yellow px-3 py-1.5">
               <span className="font-display text-base">{tokenIn.symbol}</span>
               <ChevronDown className="h-3 w-3" />
             </div>
@@ -174,7 +174,7 @@ export function OfficialSwapPanel() {
               Balance: {balanceLabel} {tokenIn.symbol}
             </span>
           </div>
-          <div className="mt-3 grid grid-cols-4 gap-2">
+          <div className="mt-2 grid grid-cols-4 gap-2">
             {[25, 50, 75, 100].map((percent) => (
               <button
                 key={percent}
@@ -200,19 +200,19 @@ export function OfficialSwapPanel() {
           </button>
         </div>
 
-        <div className="rounded-lg border-2 border-quantum-black/10 bg-quantum-paper p-4">
+        <div className="border-2 border-quantum-black/10 bg-quantum-paper p-3">
           <div className="mb-2 font-mono text-[11px] uppercase text-quantum-black/50">
             You receive
           </div>
           <div className="flex items-center gap-3">
             <div
-              className={`flex-1 font-display text-2xl ${
+              className={`flex-1 font-display text-xl ${
                 quoteBusy ? 'animate-pulse text-quantum-black/30' : ''
               }`}
             >
               {quote || '-'}
             </div>
-            <div className="flex items-center gap-2 rounded-full border-2 border-quantum-black bg-quantum-green px-3 py-1.5">
+            <div className="flex items-center gap-2 border-2 border-quantum-black bg-quantum-green px-3 py-1.5">
               <span className="font-display text-base">{tokenOut.symbol}</span>
               <ChevronDown className="h-3 w-3" />
             </div>
@@ -247,15 +247,15 @@ export function OfficialSwapPanel() {
         </div>
 
         {!isConnected ? (
-          <Button className="mt-4 w-full" onClick={connect} disabled={isConnecting}>
+          <Button className="mt-3 w-full" onClick={connect} disabled={isConnecting}>
             Connect Wallet
           </Button>
         ) : !isSignedIn ? (
-          <Button className="mt-4 w-full" variant="cyan" onClick={signIn} disabled={isConnecting}>
+          <Button className="mt-3 w-full" variant="cyan" onClick={signIn} disabled={isConnecting}>
             Verify Wallet
           </Button>
         ) : (
-          <Button className="mt-4 w-full" onClick={runSwap} disabled={disabled || swapBusy}>
+          <Button className="mt-3 w-full" onClick={runSwap} disabled={disabled || swapBusy}>
             {swapBusy ? 'Swapping...' : `Swap ${tokenIn.symbol} -> ${tokenOut.symbol}`}
           </Button>
         )}

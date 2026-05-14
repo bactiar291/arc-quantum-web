@@ -15,7 +15,7 @@ export function Button({
   return (
     <button
       className={clsx(
-        'brutal-button inline-flex min-h-11 items-center justify-center gap-2 px-4 py-2 font-display text-xl uppercase leading-none text-quantum-ink disabled:cursor-not-allowed disabled:opacity-50',
+        'brutal-button inline-flex min-h-10 items-center justify-center gap-2 px-3 py-2 font-display text-base uppercase leading-none text-quantum-ink disabled:cursor-not-allowed disabled:opacity-50 md:text-lg',
         variant === 'primary' && 'bg-quantum-yellow',
         variant === 'cyan' && 'bg-quantum-cyan',
         variant === 'green' && 'bg-quantum-green',

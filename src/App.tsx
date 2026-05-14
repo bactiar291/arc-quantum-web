@@ -1,13 +1,11 @@
-import { GitBranchPlus, Rocket, Send, Shuffle, Terminal, Waves } from 'lucide-react'
-import { lazy, Suspense, useState } from 'react'
+import { GitBranchPlus, Rocket, Send, Shuffle, Waves } from 'lucide-react'
+import { useState } from 'react'
 
 import type { ReactorTab } from './components/ActionReactor'
 import { Dashboard } from './components/Dashboard'
 import { Header } from './components/Header'
 import { IntroGate } from './components/IntroGate'
 import { PrivyAppProvider } from './components/PrivyAppProvider'
-import { QuantumVisual } from './components/QuantumVisual'
-import { SignalRail } from './components/SignalRail'
 import { StatusBar } from './components/StatusBar'
 import { BridgePanel } from './components/panels/BridgePanel'
 import { DeployPanel } from './components/panels/DeployPanel'
@@ -19,12 +17,6 @@ import { Panel } from './components/ui/Panel'
 import { ArcKitProvider } from './hooks/useArcAppKit'
 
 const INTRO_KEY = 'arc-quantum-entered-v2'
-const ActionReactor = lazy(() =>
-  import('./components/ActionReactor').then((module) => ({ default: module.ActionReactor }))
-)
-const ProtocolMatrix = lazy(() =>
-  import('./components/ActionReactor').then((module) => ({ default: module.ProtocolMatrix }))
-)
 
 type TabId = ReactorTab
 
@@ -69,26 +61,22 @@ function Shell() {
       <div className="grid-noise" />
       <Header />
 
-      <main className="mx-auto grid w-full max-w-[1520px] grid-cols-1 gap-5 px-4 pb-24 pt-4 md:px-6 xl:grid-cols-[minmax(0,1fr)_390px]">
-        <section className="space-y-5">
-          <Panel className="animate-reveal hero-panel p-3 md:p-4" shadow="cyan">
-            <div className="mb-3 flex flex-col justify-between gap-2 border-b-4 border-quantum-black pb-3 md:flex-row md:items-center">
+      <main className="mx-auto grid w-full max-w-[1120px] grid-cols-1 gap-4 px-3 pb-20 pt-3 md:px-4 lg:grid-cols-[minmax(420px,520px)_minmax(300px,1fr)]">
+        <section className="space-y-3">
+          <Panel className="animate-reveal hero-panel p-3" shadow="cyan">
+            <div className="mb-3 flex items-center justify-between gap-3 border-b-2 border-quantum-black/15 pb-2">
               <div>
-                <div className="flex items-center gap-2 font-display text-3xl leading-none md:text-4xl">
-                  <ActiveIcon className="h-7 w-7 text-quantum-yellow" />
+                <div className="flex items-center gap-2 font-display text-2xl leading-none md:text-3xl">
+                  <ActiveIcon className="h-5 w-5 text-quantum-yellow" />
                   {active.label}
                 </div>
-                <div className="mt-1 flex items-center gap-2 font-mono text-xs uppercase text-quantum-black/60">
-                  <Terminal className="h-4 w-4 text-quantum-cyan" />
-                  Privy login / Circle AppKit / public RPC
-                </div>
               </div>
-              <div className="border-4 border-quantum-black bg-quantum-green px-3 py-1.5 font-mono text-[11px] uppercase text-quantum-black shadow-[5px_5px_0_#111]">
-                Privy Auth / Wallet Gas
+              <div className="border-2 border-quantum-black bg-quantum-green px-2 py-1 font-mono text-[10px] uppercase text-quantum-black shadow-[2px_2px_0_#111]">
+                AppKit / Arc
               </div>
             </div>
 
-            <nav className="scrollbar-none flex gap-2 overflow-x-auto pb-1 md:grid md:grid-cols-5 md:overflow-visible">
+            <nav className="scrollbar-none grid grid-cols-5 gap-2 overflow-x-auto pb-1">
               {tabs.map((tab) => {
                 const Icon = tab.icon
                 return (
@@ -96,9 +84,9 @@ function Shell() {
                     key={tab.id}
                     variant={activeTab === tab.id ? 'primary' : 'ghost'}
                     onClick={() => setActiveTab(tab.id)}
-                    className="min-w-24 flex-col gap-1 px-3 py-2 text-base md:aspect-square md:min-w-0 md:text-lg"
+                    className="aspect-square min-h-0 min-w-0 flex-col gap-1 px-1 py-2 text-xs md:text-sm"
                   >
-                    <Icon className="h-5 w-5" />
+                    <Icon className="h-4 w-4" />
                     {tab.label}
                   </Button>
                 )
@@ -107,16 +95,10 @@ function Shell() {
           </Panel>
 
           <ActivePanel tab={activeTab} />
-          <Suspense fallback={<div className="h-48 animate-pulse rounded-lg bg-quantum-paper" />}>
-            <ActionReactor activeTab={activeTab} />
-            <ProtocolMatrix activeTab={activeTab} />
-          </Suspense>
         </section>
 
-        <aside className="space-y-5 xl:sticky xl:top-5 xl:self-start">
+        <aside className="space-y-3 lg:sticky lg:top-20 lg:self-start">
           <Dashboard />
-          <QuantumVisual />
-          <SignalRail />
         </aside>
       </main>
 

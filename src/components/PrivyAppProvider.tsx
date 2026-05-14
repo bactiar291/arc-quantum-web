@@ -244,7 +244,7 @@ export function PrivyAppProvider({ children }: { children: ReactNode }) {
             'wallet_connect'
           ]
         },
-        captchaEnabled: true,
+        captchaEnabled: false,
         defaultChain: arcTestnet,
         embeddedWallets: {
           ethereum: {

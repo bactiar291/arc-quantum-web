@@ -33,9 +33,9 @@ body {
   min-height: 100vh;
   color: var(--ink);
   background:
-    linear-gradient(118deg, rgba(255, 214, 10, 0.28), transparent 32%),
-    linear-gradient(284deg, rgba(0, 194, 168, 0.22), transparent 40%),
-    linear-gradient(32deg, rgba(255, 77, 141, 0.18), transparent 38%),
+    linear-gradient(118deg, rgba(255, 214, 10, 0.14), transparent 32%),
+    linear-gradient(284deg, rgba(0, 194, 168, 0.12), transparent 40%),
+    linear-gradient(32deg, rgba(255, 77, 141, 0.1), transparent 38%),
     var(--paper);
   background-size: 170% 170%;
   animation: mesh-drift 16s var(--ease) infinite alternate;
@@ -70,9 +70,9 @@ select {
   inset: 0;
   z-index: 0;
   background-image:
-    linear-gradient(rgba(17, 17, 17, 0.1) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(17, 17, 17, 0.1) 1px, transparent 1px);
-  background-size: 34px 34px;
+    linear-gradient(rgba(17, 17, 17, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(17, 17, 17, 0.045) 1px, transparent 1px);
+  background-size: 40px 40px;
   mask-image: linear-gradient(to bottom, #000 0%, transparent 88%);
 }
 
@@ -93,18 +93,18 @@ select {
     repeating-linear-gradient(
       116deg,
       transparent 0 56px,
-      rgba(255, 77, 141, 0.12) 56px 60px,
+      rgba(255, 77, 141, 0.055) 56px 59px,
       transparent 60px 122px
     ),
-    radial-gradient(circle at 18% 18%, rgba(0, 229, 255, 0.34), transparent 24%),
-    radial-gradient(circle at 88% 12%, rgba(255, 214, 10, 0.3), transparent 23%),
-    radial-gradient(circle at 72% 86%, rgba(0, 194, 168, 0.25), transparent 26%);
+    radial-gradient(circle at 18% 18%, rgba(0, 229, 255, 0.18), transparent 24%),
+    radial-gradient(circle at 88% 12%, rgba(255, 214, 10, 0.15), transparent 23%),
+    radial-gradient(circle at 72% 86%, rgba(0, 194, 168, 0.14), transparent 26%);
   animation: band-shift 18s var(--ease) infinite alternate;
 }
 
 .panel {
   isolation: isolate;
-  border-width: 4px;
+  border-width: 3px;
   border-color: var(--ink);
   color: var(--ink);
 }
@@ -115,7 +115,7 @@ select {
   position: absolute;
   inset: 0;
   z-index: -1;
-  opacity: 0.52;
+  opacity: 0.28;
   background-image:
     linear-gradient(90deg, rgba(17, 17, 17, 0.08) 1px, transparent 1px),
     linear-gradient(rgba(17, 17, 17, 0.08) 1px, transparent 1px);
@@ -123,14 +123,12 @@ select {
 }
 
 .hero-panel {
-  background:
-    linear-gradient(135deg, rgba(255, 77, 141, 0.2) 0 36%, transparent 36%),
-    #ffffff;
+  background: #ffffff;
 }
 
 .brutal-button {
-  border: 4px solid var(--ink);
-  box-shadow: 5px 5px 0 var(--ink);
+  border: 3px solid var(--ink);
+  box-shadow: 3px 3px 0 var(--ink);
   transition:
     transform 150ms ease,
     box-shadow 150ms ease,
@@ -138,22 +136,22 @@ select {
 }
 
 .brutal-button:hover:not(:disabled) {
-  transform: translate(2px, 2px);
-  box-shadow: 3px 3px 0 var(--ink);
-  filter: saturate(1.08);
+  transform: translate(1px, 1px);
+  box-shadow: 2px 2px 0 var(--ink);
+  filter: saturate(1.04);
 }
 
 .brutal-button:active:not(:disabled) {
-  transform: translate(5px, 5px);
+  transform: translate(3px, 3px);
   box-shadow: 0 0 0 var(--ink);
 }
 
 .input-quantum {
-  min-height: 56px;
-  border: 4px solid var(--ink);
+  min-height: 44px;
+  border: 3px solid var(--ink);
   background: #ffffff;
   color: var(--ink);
-  box-shadow: 5px 5px 0 var(--ink);
+  box-shadow: 3px 3px 0 var(--ink);
   outline: none;
   transition:
     background-color 150ms ease,
@@ -162,7 +160,7 @@ select {
 
 .input-quantum:focus {
   background: #fff6cc;
-  box-shadow: 5px 5px 0 var(--pink);
+  box-shadow: 3px 3px 0 var(--pink);
 }
 
 .input-quantum::placeholder {
@@ -175,29 +173,48 @@ select {
 }
 
 .compact-action-panel {
-  padding: 14px;
+  width: 100%;
+  max-width: 480px;
+  margin-inline: auto;
+  padding: 12px;
 }
 
 .compact-action-panel .brutal-button {
-  min-height: 42px;
-  box-shadow: 4px 4px 0 var(--ink);
+  min-height: 38px;
+  box-shadow: 3px 3px 0 var(--ink);
 }
 
 .compact-action-panel label > span:first-child {
-  margin-bottom: 6px;
-  font-size: 1rem;
+  margin-bottom: 5px;
+  font-size: 0.9rem;
 }
 
 .compact-input {
-  min-height: 46px;
-  padding-block: 8px;
-  box-shadow: 4px 4px 0 var(--ink);
+  min-height: 40px;
+  padding-block: 7px;
+  box-shadow: 3px 3px 0 var(--ink);
 }
 
 .mini-swap-box {
-  border: 4px solid var(--ink);
-  padding: 10px;
-  box-shadow: 4px 4px 0 var(--ink);
+  border: 3px solid var(--ink);
+  padding: 8px;
+  box-shadow: 3px 3px 0 var(--ink);
+}
+
+.compact-action-panel > div:first-child {
+  border-bottom-width: 2px;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  font-size: 1.45rem;
+}
+
+.compact-action-panel .border-4 {
+  border-width: 2px;
+}
+
+.compact-action-panel [class*='shadow-[5px_5px_0_#111]'],
+.compact-action-panel [class*='shadow-[4px_4px_0_#111]'] {
+  box-shadow: 2px 2px 0 var(--ink);
 }
 
 .scanline {
@@ -756,7 +773,7 @@ select {
 
 @media (min-width: 1280px) {
   .dashboard-panel {
-    max-height: calc(100vh - 140px);
+    max-height: calc(100vh - 96px);
     overflow-y: auto;
   }
 }

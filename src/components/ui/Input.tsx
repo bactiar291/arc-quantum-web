@@ -10,7 +10,7 @@ export function Input({ label, hint, className, ...props }: InputProps) {
   return (
     <label className="block">
       {label ? (
-        <span className="mb-2 block font-display text-xl uppercase leading-none text-quantum-ink">
+        <span className="mb-1.5 block font-display text-sm uppercase leading-none text-quantum-ink md:text-base">
           {label}
         </span>
       ) : null}
