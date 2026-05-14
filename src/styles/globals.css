@@ -5,14 +5,15 @@
 @tailwind utilities;
 
 :root {
-  --bg-primary: #101614;
-  --bg-panel: #1b2421;
-  --border: #fff9e8;
-  --accent-yellow: #f1da63;
-  --accent-cyan: #7ee6d6;
-  --accent-red: #f06b7a;
-  --text-primary: #fff9e8;
-  --text-mono: #7ee6d6;
+  --bg-primary: #071412;
+  --bg-panel: #10231f;
+  --border: #fffceb;
+  --accent-yellow: #ffd84a;
+  --accent-cyan: #38dff4;
+  --accent-red: #ff6476;
+  --accent-green: #71f59b;
+  --text-primary: #fffceb;
+  --text-mono: #38dff4;
 }
 
 * {
@@ -54,8 +55,8 @@ select {
   inset: 0;
   z-index: 0;
   background-image:
-    linear-gradient(rgba(255, 249, 232, 0.07) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 249, 232, 0.07) 1px, transparent 1px);
+    linear-gradient(rgba(255, 252, 235, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 252, 235, 0.08) 1px, transparent 1px);
   background-size: 32px 32px;
   mask-image: linear-gradient(to bottom, #000 0%, transparent 90%);
 }
@@ -72,8 +73,8 @@ select {
   z-index: -1;
   background: linear-gradient(
     135deg,
-    rgba(241, 218, 99, 0.1),
-    rgba(126, 230, 214, 0.07) 42%,
+    rgba(255, 216, 74, 0.12),
+    rgba(56, 223, 244, 0.08) 42%,
     transparent 42%
   );
 }
@@ -110,7 +111,7 @@ select {
 
 .input-quantum:focus {
   border-color: var(--accent-yellow);
-  box-shadow: 0 0 0 2px rgba(241, 218, 99, 0.38);
+  box-shadow: 0 0 0 2px rgba(255, 216, 74, 0.38);
 }
 
 .input-quantum:disabled {
@@ -162,8 +163,8 @@ select {
   position: absolute;
   inset: 0;
   border: 4px solid #f3f0e8;
-  background: rgba(95, 200, 186, 0.16);
-  box-shadow: 0 0 24px rgba(95, 200, 186, 0.35) inset;
+  background: rgba(56, 223, 244, 0.18);
+  box-shadow: 0 0 24px rgba(56, 223, 244, 0.38) inset;
 }
 
 .quantum-cube span:nth-child(1) {
@@ -172,12 +173,12 @@ select {
 
 .quantum-cube span:nth-child(2) {
   transform: rotateY(90deg) translateZ(56px);
-  background: rgba(216, 201, 92, 0.18);
+  background: rgba(255, 216, 74, 0.2);
 }
 
 .quantum-cube span:nth-child(3) {
   transform: rotateX(90deg) translateZ(56px);
-  background: rgba(217, 94, 106, 0.14);
+  background: rgba(113, 245, 155, 0.16);
 }
 
 .orbit {
@@ -190,17 +191,17 @@ select {
 
 .orbit-a {
   transform: rotateX(72deg) rotateZ(20deg);
-  border-color: #f1da63;
+  border-color: #ffd84a;
 }
 
 .orbit-b {
   transform: rotateX(58deg) rotateY(56deg);
-  border-color: #7ee6d6;
+  border-color: #38dff4;
 }
 
 .orbit-c {
   transform: rotateX(112deg) rotateY(20deg);
-  border-color: #f06b7a;
+  border-color: #71f59b;
 }
 
 @media (max-width: 640px) {

@@ -1,9 +1,21 @@
 import { isAddress, type Address } from 'viem'
 
+import {
+  ARC_EURC_ADDRESS,
+  ARC_USDC_ADDRESS,
+  SEPOLIA_USDC_ADDRESS
+} from './env'
 import type { Token } from '../store/useAppStore'
 
+function addressFromEnv(value: string, fallback: Address) {
+  return isAddress(value) ? value : fallback
+}
+
 export const USDC_TOKEN: Token = {
-  address: '0x3600000000000000000000000000000000000000',
+  address: addressFromEnv(
+    ARC_USDC_ADDRESS,
+    '0x3600000000000000000000000000000000000000'
+  ),
   name: 'USDC',
   symbol: 'USDC',
   decimals: 6,
@@ -11,7 +23,10 @@ export const USDC_TOKEN: Token = {
 }
 
 export const EURC_TOKEN: Token = {
-  address: '0x89B50855Aa3bE2F677cD6303Cec089B5F319D72a',
+  address: addressFromEnv(
+    ARC_EURC_ADDRESS,
+    '0x89B50855Aa3bE2F677cD6303Cec089B5F319D72a'
+  ),
   name: 'EURC',
   symbol: 'EURC',
   decimals: 6,
@@ -19,7 +34,10 @@ export const EURC_TOKEN: Token = {
 }
 
 export const SEPOLIA_USDC_TOKEN: Token = {
-  address: '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238',
+  address: addressFromEnv(
+    SEPOLIA_USDC_ADDRESS,
+    '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238'
+  ),
   name: 'USDC Sepolia',
   symbol: 'USDC',
   decimals: 6,

@@ -14,7 +14,7 @@ export function Header() {
     <header className="sticky top-0 z-30 border-b-2 border-white bg-quantum-black/95 px-4 py-3 backdrop-blur md:px-6">
       <div className="mx-auto flex max-w-[1520px] flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div className="flex items-center gap-3">
-          <div className="grid h-12 w-12 place-items-center border-2 border-white bg-quantum-yellow text-black shadow-[4px_4px_0_#7EE6D6]">
+          <div className="grid h-12 w-12 place-items-center border-2 border-white bg-quantum-yellow text-black shadow-[4px_4px_0_#38DFF4]">
             <Cpu className="h-7 w-7" />
           </div>
           <div>

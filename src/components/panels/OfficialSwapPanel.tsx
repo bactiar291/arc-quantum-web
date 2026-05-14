@@ -143,11 +143,6 @@ export function OfficialSwapPanel() {
           </Button>
         )}
 
-        <div className="border-2 border-white bg-black p-3 font-mono text-[11px] uppercase leading-5 text-white/60">
-          Mode aktif: Circle App Kit wallet signer. Sponsor AA belum dipakai di
-          path swap ini, jadi konfirmasi wallet/gas popup masih normal.
-        </div>
-
         {hash ? (
           <div className="break-all border-2 border-white bg-black p-3 font-mono text-xs text-quantum-green">
             TX {hash}

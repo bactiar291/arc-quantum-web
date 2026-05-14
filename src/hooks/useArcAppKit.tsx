@@ -37,6 +37,8 @@ import {
   ARC_CHAIN_ID,
   ARC_EXPLORER,
   ARC_RPC_URLS,
+  SEPOLIA_CHAIN_ID,
+  SEPOLIA_EXPLORER,
   SEPOLIA_RPC_URL,
   arcTestnet,
   arcTransport
@@ -48,6 +50,7 @@ import { useTrackedTx } from './useTrackedTx'
 
 type StableToken = 'USDC' | 'EURC'
 type SwapDirection = 'USDC_TO_EURC' | 'EURC_TO_USDC'
+type BridgeDirection = 'SEPOLIA_TO_ARC' | 'ARC_TO_SEPOLIA'
 
 interface SwapRequest {
   amount: string
@@ -63,6 +66,7 @@ interface SendRequest {
 
 interface BridgeRequest {
   amount: string
+  direction: BridgeDirection
   recipient?: Address
 }
 
@@ -77,7 +81,7 @@ interface ArcKitContextValue {
   estimateSwap: (request: SwapRequest) => Promise<SwapEstimate>
   executeSwap: (request: SwapRequest) => Promise<SwapResult>
   sendToken: (request: SendRequest) => Promise<BridgeStep>
-  bridgeUsdcToArc: (request: BridgeRequest) => Promise<BridgeResult>
+  bridgeUsdc: (request: BridgeRequest) => Promise<BridgeResult>
 }
 
 const ArcKitContext = createContext<ArcKitContextValue | null>(null)
@@ -93,8 +97,8 @@ function normalizeError(error: unknown) {
   const message = kitMessage || (error instanceof Error ? error.message : String(error))
   if (/createSwap failed|Failed to fetch|Maximum retry attempts/i.test(message)) {
     return [
-      'Circle Stablecoin Service belum bisa diakses dari browser.',
-      'Cek Kit Key domain, ad-block/VPN, dan status Circle App Kit.',
+      'Circle swap route gagal.',
+      'Proxy Vercel sudah aktif; kalau masih gagal cek Circle Kit Key domain/API dan saldo input.',
       `Raw: ${message}`
     ].join(' ')
   }
@@ -210,6 +214,18 @@ export function ArcKitProvider({ children }: { children: ReactNode }) {
     setChainId(ARC_CHAIN_ID)
   }, [])
 
+  const switchToSepolia = useCallback(async () => {
+    const provider = getProvider()
+    await switchChain(provider, {
+      chainId: SEPOLIA_CHAIN_ID,
+      chainName: 'Ethereum Sepolia',
+      nativeCurrency: { name: 'Sepolia Ether', symbol: 'ETH', decimals: 18 },
+      rpcUrls: [SEPOLIA_RPC_URL],
+      blockExplorerUrls: [SEPOLIA_EXPLORER]
+    })
+    setChainId(SEPOLIA_CHAIN_ID)
+  }, [])
+
   const connect = useCallback(async () => {
     setIsConnecting(true)
     setLastError(null)
@@ -294,24 +310,33 @@ export function ArcKitProvider({ children }: { children: ReactNode }) {
     [kit, readyAdapter, track]
   )
 
-  const bridgeUsdcToArc = useCallback(
-    async ({ amount, recipient }: BridgeRequest) => {
-      const tracked = await track('send', 'Bridge USDC Sepolia to Arc', async () => {
-        const provider = getProvider()
-        await switchChain(provider, {
-          chainId: 11155111,
-          chainName: 'Ethereum Sepolia',
-          nativeCurrency: { name: 'Sepolia Ether', symbol: 'ETH', decimals: 18 },
-          rpcUrls: ['https://ethereum-sepolia-rpc.publicnode.com'],
-          blockExplorerUrls: ['https://sepolia.etherscan.io']
-        })
-        setChainId(11155111)
+  const bridgeUsdc = useCallback(
+    async ({ amount, direction, recipient }: BridgeRequest) => {
+      const summary =
+        direction === 'SEPOLIA_TO_ARC'
+          ? 'Bridge USDC Sepolia to Arc'
+          : 'Bridge USDC Arc to Sepolia'
+      const tracked = await track('send', summary, async () => {
+        if (direction === 'SEPOLIA_TO_ARC') {
+          await switchToSepolia()
+        } else {
+          await switchToArc()
+        }
         const activeAdapter = adapter ?? (await buildAdapter())
         const result = await kit.bridge({
-          from: { adapter: activeAdapter, chain: BridgeChain.Ethereum_Sepolia },
+          from: {
+            adapter: activeAdapter,
+            chain:
+              direction === 'SEPOLIA_TO_ARC'
+                ? BridgeChain.Ethereum_Sepolia
+                : BridgeChain.Arc_Testnet
+          },
           to: {
             adapter: activeAdapter,
-            chain: BridgeChain.Arc_Testnet,
+            chain:
+              direction === 'SEPOLIA_TO_ARC'
+                ? BridgeChain.Arc_Testnet
+                : BridgeChain.Ethereum_Sepolia,
             recipientAddress: recipient
           },
           amount,
@@ -325,7 +350,7 @@ export function ArcKitProvider({ children }: { children: ReactNode }) {
       if (!tracked.value) throw new Error('Bridge result kosong.')
       return tracked.value
     },
-    [adapter, buildAdapter, kit, track]
+    [adapter, buildAdapter, kit, switchToArc, switchToSepolia, track]
   )
 
   const value = useMemo(
@@ -340,11 +365,11 @@ export function ArcKitProvider({ children }: { children: ReactNode }) {
       estimateSwap,
       executeSwap,
       sendToken,
-      bridgeUsdcToArc
+      bridgeUsdc
     }),
     [
       account,
-      bridgeUsdcToArc,
+      bridgeUsdc,
       chainId,
       connect,
       estimateSwap,

@@ -1,4 +1,4 @@
-import { GitBranchPlus } from 'lucide-react'
+import { ArrowUpDown, GitBranchPlus } from 'lucide-react'
 import { useState } from 'react'
 import { isAddress, type Address } from 'viem'
 
@@ -8,25 +8,40 @@ import { Input } from '../ui/Input'
 import { Panel } from '../ui/Panel'
 
 export function BridgePanel() {
+  const [direction, setDirection] = useState<'SEPOLIA_TO_ARC' | 'ARC_TO_SEPOLIA'>(
+    'SEPOLIA_TO_ARC'
+  )
   const [amount, setAmount] = useState('1')
   const [recipient, setRecipient] = useState('')
+  const [customRecipient, setCustomRecipient] = useState(false)
   const [status, setStatus] = useState('')
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
-  const { account, bridgeUsdcToArc, connect, isConnected, isConnecting } =
+  const { account, bridgeUsdc, connect, isConnected, isConnecting } =
     useArcAppKit()
 
-  const target = recipient || account || ''
-  const validRecipient = !recipient || isAddress(recipient)
+  const fromChain = direction === 'SEPOLIA_TO_ARC' ? 'SEPOLIA' : 'ARC'
+  const toChain = direction === 'SEPOLIA_TO_ARC' ? 'ARC' : 'SEPOLIA'
+  const target = customRecipient && recipient ? recipient : account || ''
+  const validRecipient = Boolean(target && isAddress(target))
+
+  const flip = () => {
+    setDirection((value) =>
+      value === 'SEPOLIA_TO_ARC' ? 'ARC_TO_SEPOLIA' : 'SEPOLIA_TO_ARC'
+    )
+    setStatus('')
+    setError('')
+  }
 
   const run = async () => {
     setBusy(true)
     setStatus('')
     setError('')
     try {
-      const result = await bridgeUsdcToArc({
+      const result = await bridgeUsdc({
         amount,
-        recipient: recipient ? (recipient as Address) : undefined
+        direction,
+        recipient: target as Address
       })
       setStatus(`${result.state.toUpperCase()} / ${result.steps.length} STEPS`)
     } catch (caught) {
@@ -44,13 +59,21 @@ export function BridgePanel() {
       </div>
 
       <div className="space-y-4">
-        <div className="grid gap-3 md:grid-cols-2">
+        <div className="grid gap-3 md:grid-cols-[1fr_56px_1fr]">
           <div className="border-2 border-white bg-black p-4">
-            <div className="font-display text-4xl">SEPOLIA</div>
+            <div className="font-display text-4xl">{fromChain}</div>
             <div className="font-mono text-xs uppercase text-white/55">Source</div>
           </div>
+          <button
+            className="grid min-h-14 place-items-center border-2 border-white bg-quantum-cyan text-black shadow-[4px_4px_0_#000]"
+            onClick={flip}
+            type="button"
+            aria-label="Flip bridge direction"
+          >
+            <ArrowUpDown className="h-6 w-6" />
+          </button>
           <div className="border-2 border-white bg-black p-4">
-            <div className="font-display text-4xl">ARC</div>
+            <div className="font-display text-4xl">{toChain}</div>
             <div className="font-mono text-xs uppercase text-white/55">Destination</div>
           </div>
         </div>
@@ -61,16 +84,26 @@ export function BridgePanel() {
           value={amount}
           onChange={(event) => setAmount(event.target.value)}
         />
-        <Input
-          label="Recipient Override"
-          value={recipient}
-          onChange={(event) => setRecipient(event.target.value)}
-          placeholder={account || '0x...'}
-          hint="Empty = connected wallet"
-        />
-
-        <div className="truncate border-2 border-white bg-black p-3 font-mono text-xs text-quantum-cyan">
-          TO {target || 'CONNECT WALLET'}
+        <div className="space-y-2">
+          <div className="truncate border-2 border-white bg-black p-3 font-mono text-xs text-quantum-cyan">
+            RECIPIENT {target || 'CONNECT WALLET'}
+          </div>
+          <button
+            className="font-mono text-[11px] uppercase text-quantum-yellow underline decoration-2 underline-offset-4"
+            onClick={() => setCustomRecipient((value) => !value)}
+            type="button"
+          >
+            {customRecipient ? 'Use connected wallet' : 'Change to another address'}
+          </button>
+          {customRecipient ? (
+            <Input
+              label="Custom Recipient"
+              value={recipient}
+              onChange={(event) => setRecipient(event.target.value)}
+              placeholder={account || '0x...'}
+              hint="Empty = connected wallet"
+            />
+          ) : null}
         </div>
 
         {!isConnected ? (
@@ -83,7 +116,7 @@ export function BridgePanel() {
             onClick={run}
             disabled={!amount || !validRecipient || busy}
           >
-            {busy ? 'Bridging' : 'Bridge USDC'}
+            {busy ? 'Bridging' : `Bridge ${fromChain} to ${toChain}`}
           </Button>
         )}
 

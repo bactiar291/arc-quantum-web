@@ -29,7 +29,7 @@ export function QuantumVisual() {
         <img
           src={devMark}
           alt="Lugert developer mark"
-          className="absolute bottom-0 right-0 w-36 border-2 border-white bg-black shadow-[4px_4px_0_#7EE6D6] md:w-44"
+          className="absolute bottom-0 right-0 w-36 border-2 border-white bg-black shadow-[4px_4px_0_#38DFF4] md:w-44"
         />
       </div>
     </Panel>
