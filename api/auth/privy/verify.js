@@ -17,6 +17,8 @@ function getPrivyClient() {
 }
 
 export default async function handler(request, response) {
+  response.setHeader('cache-control', 'no-store')
+
   if (!['GET', 'POST'].includes(request.method)) {
     response.setHeader('allow', 'GET, POST')
     response.status(405).json({ ok: false, error: 'Method not allowed' })
@@ -35,7 +37,6 @@ export default async function handler(request, response) {
 
   try {
     const claims = await getPrivyClient().utils().auth().verifyAccessToken(token)
-    response.setHeader('cache-control', 'no-store')
     response.status(200).json({
       ok: true,
       claims: {
