@@ -1,6 +1,6 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { Dice5, Send } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { formatUnits, isAddress, parseUnits, type Address } from 'viem'
 import { useBalance, useReadContract } from 'wagmi'
 
@@ -34,7 +34,7 @@ type SendAsset =
 const nativeAsset = {
   id: 'native',
   kind: 'native',
-  name: 'Native Gas USDC',
+  name: 'Arc Native USDC',
   symbol: 'USDC',
   decimals: 18
 } satisfies SendAsset
@@ -74,7 +74,6 @@ export function StableSendPanel() {
   const [hash, setHash] = useState('')
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
-  const gasMode = useAppStore((state) => state.gasMode)
   const deployedTokens = useAppStore((state) => state.deployedTokens)
   const {
     account,
@@ -82,16 +81,11 @@ export function StableSendPanel() {
     isConnected,
     isConnecting,
     isSignedIn,
-    prepareSponsorAccount,
-    sendErc20Sponsored,
     sendErc20Wallet,
-    sendNativeSponsored,
     sendNativeWallet,
-    signIn,
-    sponsorAccountAddress
+    signIn
   } = useArcAppKit()
   const validRecipient = isAddress(to)
-  const sponsorMode = gasMode === 'sponsor'
 
   const assets = useMemo<SendAsset[]>(
     () => [
@@ -111,17 +105,14 @@ export function StableSendPanel() {
 
   const selectedAsset =
     assets.find((asset) => asset.id === assetId) ?? assets[0] ?? nativeAsset
-  const senderAddress = sponsorMode
-    ? sponsorAccountAddress ?? undefined
-    : account ?? undefined
   const amountValue = parseAmount(amount, selectedAsset.decimals)
 
   const { data: nativeBalance, isLoading: nativeLoading } = useBalance({
-    address: senderAddress,
+    address: account ?? undefined,
     chainId: ARC_CHAIN_ID,
     query: {
-      enabled: Boolean(senderAddress && selectedAsset.kind === 'native'),
-      refetchInterval: senderAddress ? 4000 : false,
+      enabled: Boolean(account && selectedAsset.kind === 'native'),
+      refetchInterval: account ? 4000 : false,
       refetchOnWindowFocus: true
     }
   })
@@ -130,24 +121,14 @@ export function StableSendPanel() {
     address: selectedAsset.kind === 'erc20' ? selectedAsset.address : USDC_TOKEN.address,
     abi: erc20Abi,
     functionName: 'balanceOf',
-    args: senderAddress ? [senderAddress] : undefined,
+    args: account ? [account] : undefined,
     chainId: ARC_CHAIN_ID,
     query: {
-      enabled: Boolean(senderAddress && selectedAsset.kind === 'erc20'),
-      refetchInterval: senderAddress ? 4000 : false,
+      enabled: Boolean(account && selectedAsset.kind === 'erc20'),
+      refetchInterval: account ? 4000 : false,
       refetchOnWindowFocus: true
     }
   })
-
-  useEffect(() => {
-    if (assets.some((asset) => asset.id === assetId)) return
-    setAssetId(assets[0]?.id ?? 'native')
-  }, [assetId, assets])
-
-  useEffect(() => {
-    if (!sponsorMode || !isConnected || !isSignedIn || sponsorAccountAddress) return
-    void prepareSponsorAccount().catch(() => undefined)
-  }, [isConnected, isSignedIn, prepareSponsorAccount, sponsorAccountAddress, sponsorMode])
 
   const balanceValue =
     selectedAsset.kind === 'native'
@@ -157,7 +138,7 @@ export function StableSendPanel() {
         : null
   const balanceLoading =
     selectedAsset.kind === 'native' ? nativeLoading : erc20Loading
-  const balanceLabel = !senderAddress
+  const balanceLabel = !account
     ? '-'
     : balanceLoading
       ? '...'
@@ -167,12 +148,7 @@ export function StableSendPanel() {
   const invalidAmount = !amountValue
   const insufficient =
     amountValue !== null && balanceValue !== null && amountValue > balanceValue
-  const cannotSend =
-    !validRecipient ||
-    invalidAmount ||
-    insufficient ||
-    busy ||
-    (sponsorMode && !sponsorAccountAddress)
+  const cannotSend = !validRecipient || invalidAmount || insufficient || busy
 
   const run = async () => {
     if (cannotSend) return
@@ -182,21 +158,16 @@ export function StableSendPanel() {
     try {
       const recipient = to as Address
       if (selectedAsset.kind === 'native') {
-        const result = sponsorMode
-          ? await sendNativeSponsored({ amount, to: recipient })
-          : await sendNativeWallet({ amount, to: recipient })
+        const result = await sendNativeWallet({ amount, to: recipient })
         setHash(result.txHash)
       } else {
-        const request = {
+        const result = await sendErc20Wallet({
           tokenAddress: selectedAsset.address,
           symbol: selectedAsset.symbol,
           decimals: selectedAsset.decimals,
           amount,
           to: recipient
-        }
-        const result = sponsorMode
-          ? await sendErc20Sponsored(request)
-          : await sendErc20Wallet(request)
+        })
         setHash(result.txHash)
       }
       await queryClient.invalidateQueries()
@@ -209,7 +180,7 @@ export function StableSendPanel() {
 
   return (
     <Panel className="animate-reveal" shadow="cyan">
-      <div className="mb-5 flex items-center gap-2 border-b-2 border-white pb-3 font-display text-4xl">
+      <div className="mb-5 flex items-center gap-2 border-b-4 border-quantum-black pb-3 font-display text-4xl">
         <Send className="h-7 w-7 text-quantum-cyan" />
         DIRECT SEND
       </div>
@@ -231,17 +202,15 @@ export function StableSendPanel() {
           ))}
         </div>
 
-        <div className="border-2 border-white bg-black p-3 font-mono text-xs uppercase">
+        <div className="border-4 border-quantum-black bg-white p-3 font-mono text-xs uppercase shadow-[5px_5px_0_#111]">
           <div className="flex items-center justify-between gap-3">
-            <span className="text-white/55">
-              {sponsorMode ? 'Smart Account Balance' : 'Wallet Balance'}
-            </span>
+            <span className="text-quantum-black/55">Wallet Balance</span>
             <span className="text-quantum-cyan">
               {balanceLabel} {selectedAsset.symbol}
             </span>
           </div>
-          <div className="mt-2 break-all text-white/45">
-            {senderAddress ? senderAddress : 'Connect + sign in first'}
+          <div className="mt-2 break-all text-quantum-black/45">
+            {account ? account : 'Connect wallet first'}
           </div>
         </div>
 
@@ -263,49 +232,14 @@ export function StableSendPanel() {
           Random Address
         </Button>
 
-        {sponsorMode ? (
-          <div className="border-2 border-quantum-orange bg-black p-3 font-mono text-xs uppercase leading-5">
-            <div className="text-quantum-orange">Sponsor Gas Beta</div>
-            <div className="text-white/60">
-              Paymaster pays gas only. Sender is ZeroDev smart account, so fund
-              it with the selected asset before sponsored send.
-            </div>
-            <div className="mt-2 break-all border-2 border-white bg-quantum-panel p-2 text-quantum-cyan">
-              {sponsorAccountAddress ?? 'Preparing smart account...'}
-            </div>
-            <div className="mt-2 grid gap-2 sm:grid-cols-2">
-              <Button
-                variant="orange"
-                className="min-h-8 px-2 py-1 text-base"
-                onClick={() => void prepareSponsorAccount()}
-                disabled={!isConnected || !isSignedIn || busy}
-              >
-                Prepare Smart
-              </Button>
-              <Button
-                variant="cyan"
-                className="min-h-8 px-2 py-1 text-base"
-                onClick={() =>
-                  sponsorAccountAddress && navigator.clipboard.writeText(sponsorAccountAddress)
-                }
-                disabled={!sponsorAccountAddress}
-              >
-                Copy Smart
-              </Button>
-            </div>
-          </div>
-        ) : null}
-
         {invalidAmount && amount ? (
-          <div className="border-2 border-quantum-red bg-black p-3 font-mono text-xs uppercase text-quantum-red">
+          <div className="border-4 border-quantum-black bg-quantum-red p-3 font-mono text-xs uppercase text-quantum-black shadow-[5px_5px_0_#111]">
             Amount invalid or zero.
           </div>
         ) : null}
         {insufficient ? (
-          <div className="border-2 border-quantum-red bg-black p-3 font-mono text-xs uppercase text-quantum-red">
-            {sponsorMode
-              ? 'Smart account balance insufficient. Paymaster only pays gas.'
-              : 'Wallet balance insufficient.'}
+          <div className="border-4 border-quantum-black bg-quantum-red p-3 font-mono text-xs uppercase text-quantum-black shadow-[5px_5px_0_#111]">
+            Wallet balance insufficient.
           </div>
         ) : null}
 
@@ -319,21 +253,17 @@ export function StableSendPanel() {
           </Button>
         ) : (
           <Button className="w-full" onClick={run} disabled={cannotSend}>
-            {busy
-              ? 'Sending'
-              : sponsorMode
-                ? `Sponsored Send ${selectedAsset.symbol}`
-                : `Send ${selectedAsset.symbol}`}
+            {busy ? 'Sending' : `Send ${selectedAsset.symbol}`}
           </Button>
         )}
 
         {hash ? (
-          <div className="break-all border-2 border-white bg-black p-3 font-mono text-xs text-quantum-green">
+          <div className="break-all border-4 border-quantum-black bg-quantum-green p-3 font-mono text-xs text-quantum-black shadow-[5px_5px_0_#111]">
             TX {hash}
           </div>
         ) : null}
         {error ? (
-          <div className="break-words border-2 border-quantum-red bg-black p-3 font-mono text-xs text-quantum-red">
+          <div className="break-words border-4 border-quantum-black bg-quantum-red p-3 font-mono text-xs text-quantum-black shadow-[5px_5px_0_#111]">
             {error}
           </div>
         ) : null}

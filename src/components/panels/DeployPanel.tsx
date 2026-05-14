@@ -82,13 +82,13 @@ export function DeployPanel() {
 
   return (
     <Panel className="animate-reveal" shadow="red">
-      <div className="mb-5 flex items-center gap-2 border-b-2 border-white pb-3 font-display text-4xl">
+      <div className="mb-5 flex items-center gap-2 border-b-4 border-quantum-black pb-3 font-display text-4xl">
         <Rocket className="h-7 w-7 text-quantum-orange" />
         RANDOM TOKEN DEPLOY
       </div>
 
       <div className="mb-4 grid gap-3 md:grid-cols-[1fr_220px]">
-        <div className="border-2 border-white bg-black p-4 font-mono text-xs uppercase leading-5 text-white/65">
+        <div className="border-4 border-quantum-black bg-quantum-yellow p-4 font-mono text-xs uppercase leading-5 text-quantum-black shadow-[5px_5px_0_#111]">
           Generate membuat name, ticker, supply, decimals acak dan unik selama
           sesi browser. Deploy tetap wallet signer dan butuh popup gas.
         </div>
@@ -143,8 +143,8 @@ export function DeployPanel() {
       </div>
 
       {contractAddress ? (
-        <div className="mt-4 border-2 border-quantum-cyan bg-black p-3 font-mono text-xs uppercase">
-          <div className="text-white/55">Contract Address</div>
+        <div className="mt-4 border-4 border-quantum-black bg-white p-3 font-mono text-xs uppercase shadow-[5px_5px_0_#111]">
+          <div className="text-quantum-black/55">Contract Address</div>
           <a
             href={addressUrl(contractAddress as `0x${string}`)}
             target="_blank"
@@ -157,12 +157,12 @@ export function DeployPanel() {
       ) : null}
 
       {txHash ? (
-        <div className="mt-4 break-all border-2 border-white bg-black p-3 font-mono text-xs text-quantum-green">
+        <div className="mt-4 break-all border-4 border-quantum-black bg-quantum-green p-3 font-mono text-xs text-quantum-black shadow-[5px_5px_0_#111]">
           TX {txHash}
         </div>
       ) : null}
       {error ? (
-        <div className="mt-4 break-words border-2 border-quantum-red bg-black p-3 font-mono text-xs text-quantum-red">
+        <div className="mt-4 break-words border-4 border-quantum-black bg-quantum-red p-3 font-mono text-xs text-quantum-black shadow-[5px_5px_0_#111]">
           {error}
         </div>
       ) : null}

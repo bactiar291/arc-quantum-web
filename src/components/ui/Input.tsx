@@ -9,7 +9,7 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
 export function Input({ label, hint, className, ...props }: InputProps) {
   return (
     <label className="block">
-      <span className="mb-2 block font-display text-xl uppercase leading-none text-white">
+      <span className="mb-2 block font-display text-xl uppercase leading-none text-quantum-ink">
         {label}
       </span>
       <input
@@ -20,7 +20,7 @@ export function Input({ label, hint, className, ...props }: InputProps) {
         {...props}
       />
       {hint ? (
-        <span className="mt-2 block font-mono text-[11px] uppercase text-white/55">
+        <span className="mt-2 block font-mono text-[11px] uppercase text-quantum-ink/55">
           {hint}
         </span>
       ) : null}

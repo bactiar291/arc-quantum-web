@@ -95,8 +95,8 @@ export function SwapPanel() {
           </div>
         </div>
         <div className="mt-3 font-mono text-xs uppercase text-white/60">
-          Fund smart account with {tokenIn.symbol}. Output returns to smart
-          account.
+          Fund wallet with {tokenIn.symbol}. Output returns to the connected
+          wallet.
         </div>
       </div>
 

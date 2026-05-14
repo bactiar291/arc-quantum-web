@@ -1,4 +1,4 @@
-import { Fuel, GitBranchPlus, Rocket, Send, Shuffle, Terminal } from 'lucide-react'
+import { GitBranchPlus, Rocket, Send, Shuffle, Terminal } from 'lucide-react'
 import { useState } from 'react'
 
 import { Dashboard } from './components/Dashboard'
@@ -8,28 +8,25 @@ import { QuantumVisual } from './components/QuantumVisual'
 import { StatusBar } from './components/StatusBar'
 import { BridgePanel } from './components/panels/BridgePanel'
 import { DeployPanel } from './components/panels/DeployPanel'
-import { GasPanel } from './components/panels/GasPanel'
 import { OfficialSwapPanel } from './components/panels/OfficialSwapPanel'
 import { StableSendPanel } from './components/panels/StableSendPanel'
 import { Button } from './components/ui/Button'
 import { Panel } from './components/ui/Panel'
 import { ArcKitProvider } from './hooks/useArcAppKit'
 
-type TabId = 'swap' | 'send' | 'bridge' | 'deploy' | 'gas'
+type TabId = 'swap' | 'send' | 'bridge' | 'deploy'
 
 const tabs: Array<{ id: TabId; label: string; icon: typeof Shuffle }> = [
   { id: 'swap', label: 'Swap', icon: Shuffle },
   { id: 'send', label: 'Send', icon: Send },
   { id: 'bridge', label: 'Bridge', icon: GitBranchPlus },
-  { id: 'deploy', label: 'Deploy', icon: Rocket },
-  { id: 'gas', label: 'Gas', icon: Fuel }
+  { id: 'deploy', label: 'Deploy', icon: Rocket }
 ]
 
 function ActivePanel({ tab }: { tab: TabId }) {
   if (tab === 'send') return <StableSendPanel />
   if (tab === 'bridge') return <BridgePanel />
   if (tab === 'deploy') return <DeployPanel />
-  if (tab === 'gas') return <GasPanel />
   return <OfficialSwapPanel />
 }
 
@@ -53,31 +50,31 @@ function Shell() {
   }
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-quantum-black text-white">
+    <div className="min-h-screen overflow-x-hidden bg-quantum-paper text-quantum-black">
       <div className="cyber-band" />
       <div className="grid-noise" />
       <Header />
 
       <main className="mx-auto grid w-full max-w-[1520px] grid-cols-1 gap-5 px-4 pb-24 pt-4 md:px-6 xl:grid-cols-[minmax(0,1fr)_390px]">
         <section className="space-y-5">
-          <Panel className="animate-reveal" shadow="cyan">
-            <div className="mb-4 flex flex-col justify-between gap-3 border-b-2 border-white pb-4 md:flex-row md:items-center">
+          <Panel className="animate-reveal hero-panel" shadow="cyan">
+            <div className="mb-4 flex flex-col justify-between gap-3 border-b-4 border-quantum-black pb-4 md:flex-row md:items-center">
               <div>
                 <div className="flex items-center gap-3 font-display text-4xl leading-none md:text-5xl">
                   <ActiveIcon className="h-8 w-8 text-quantum-yellow" />
                   {active.label}
                 </div>
-                <div className="mt-1 flex items-center gap-2 font-mono text-xs uppercase text-white/60">
+                <div className="mt-1 flex items-center gap-2 font-mono text-xs uppercase text-quantum-black/60">
                   <Terminal className="h-4 w-4 text-quantum-cyan" />
-                  Arc Testnet stablecoin console
+                  Arc Testnet AppKit console / public RPC
                 </div>
               </div>
-              <div className="border-2 border-white bg-black px-3 py-2 font-mono text-xs uppercase text-quantum-green">
-                Official Circle App Kit
+              <div className="border-4 border-quantum-black bg-quantum-green px-3 py-2 font-mono text-xs uppercase text-quantum-black shadow-[5px_5px_0_#111]">
+                Circle App Kit / Wallet Gas
               </div>
             </div>
 
-            <nav className="grid grid-cols-2 gap-3 md:grid-cols-5">
+            <nav className="grid grid-cols-2 gap-3 md:grid-cols-4">
               {tabs.map((tab) => {
                 const Icon = tab.icon
                 return (

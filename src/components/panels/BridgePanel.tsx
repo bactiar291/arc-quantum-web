@@ -53,28 +53,28 @@ export function BridgePanel() {
 
   return (
     <Panel className="animate-reveal" shadow="yellow">
-      <div className="mb-5 flex items-center gap-2 border-b-2 border-white pb-3 font-display text-4xl">
+      <div className="mb-5 flex items-center gap-2 border-b-4 border-quantum-black pb-3 font-display text-4xl">
         <GitBranchPlus className="h-7 w-7 text-quantum-yellow" />
         USDC BRIDGE
       </div>
 
       <div className="space-y-4">
         <div className="grid gap-3 md:grid-cols-[1fr_56px_1fr]">
-          <div className="border-2 border-white bg-black p-4">
+          <div className="border-4 border-quantum-black bg-quantum-yellow p-4 shadow-[5px_5px_0_#111]">
             <div className="font-display text-4xl">{fromChain}</div>
-            <div className="font-mono text-xs uppercase text-white/55">Source</div>
+            <div className="font-mono text-xs uppercase text-quantum-black/55">Source</div>
           </div>
           <button
-            className="grid min-h-14 place-items-center border-2 border-white bg-quantum-cyan text-black shadow-[4px_4px_0_#000]"
+            className="grid min-h-14 place-items-center border-4 border-quantum-black bg-quantum-cyan text-quantum-black shadow-[5px_5px_0_#111]"
             onClick={flip}
             type="button"
             aria-label="Flip bridge direction"
           >
             <ArrowUpDown className="h-6 w-6" />
           </button>
-          <div className="border-2 border-white bg-black p-4">
+          <div className="border-4 border-quantum-black bg-quantum-green p-4 shadow-[5px_5px_0_#111]">
             <div className="font-display text-4xl">{toChain}</div>
-            <div className="font-mono text-xs uppercase text-white/55">Destination</div>
+            <div className="font-mono text-xs uppercase text-quantum-black/55">Destination</div>
           </div>
         </div>
 
@@ -85,7 +85,7 @@ export function BridgePanel() {
           onChange={(event) => setAmount(event.target.value)}
         />
         <div className="space-y-2">
-          <div className="truncate border-2 border-white bg-black p-3 font-mono text-xs text-quantum-cyan">
+          <div className="truncate border-4 border-quantum-black bg-white p-3 font-mono text-xs text-quantum-cyan shadow-[5px_5px_0_#111]">
             RECIPIENT {target || 'CONNECT WALLET'}
           </div>
           <button
@@ -125,12 +125,12 @@ export function BridgePanel() {
         )}
 
         {status ? (
-          <div className="border-2 border-white bg-black p-3 font-mono text-xs text-quantum-green">
+          <div className="border-4 border-quantum-black bg-quantum-green p-3 font-mono text-xs text-quantum-black shadow-[5px_5px_0_#111]">
             {status}
           </div>
         ) : null}
         {error ? (
-          <div className="break-words border-2 border-quantum-red bg-black p-3 font-mono text-xs text-quantum-red">
+          <div className="break-words border-4 border-quantum-black bg-quantum-red p-3 font-mono text-xs text-quantum-black shadow-[5px_5px_0_#111]">
             {error}
           </div>
         ) : null}

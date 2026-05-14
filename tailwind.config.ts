@@ -6,25 +6,26 @@ export default {
     extend: {
       colors: {
         quantum: {
-          black: '#08111F',
-          panel: '#101B2D',
-          ink: '#FFF9ED',
-          yellow: '#FFD166',
-          cyan: '#32D9FF',
-          red: '#FF5578',
-          green: '#6DFFB1',
-          purple: '#B884FF',
+          black: '#111111',
+          paper: '#F5F0E8',
+          panel: '#FFFFFF',
+          ink: '#111111',
+          yellow: '#FFD60A',
+          cyan: '#00E5FF',
+          red: '#FF4D8D',
+          green: '#00C2A8',
+          purple: '#8A5CF6',
           orange: '#FF9F1C'
         }
       },
       boxShadow: {
-        brutal: '5px 5px 0 #FFD166',
-        brutalCyan: '5px 5px 0 #32D9FF',
-        brutalRed: '5px 5px 0 #FF5578'
+        brutal: '7px 7px 0 #111111',
+        brutalCyan: '7px 7px 0 #00E5FF',
+        brutalRed: '7px 7px 0 #FF4D8D'
       },
       fontFamily: {
-        display: ['Bebas Neue', 'Impact', 'sans-serif'],
-        mono: ['Space Mono', 'Courier New', 'monospace']
+        display: ['DM Sans', 'Arial Black', 'sans-serif'],
+        mono: ['JetBrains Mono', 'Space Mono', 'Courier New', 'monospace']
       },
       keyframes: {
         scan: {

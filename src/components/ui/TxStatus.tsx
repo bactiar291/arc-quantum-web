@@ -13,7 +13,7 @@ export function TxStatus({ hash, error, busy }: TxStatusProps) {
   if (!hash && !error && !busy) return null
 
   return (
-    <div className="mt-4 border-2 border-white bg-black p-3 font-mono text-xs uppercase">
+    <div className="mt-4 border-4 border-quantum-black bg-white p-3 font-mono text-xs uppercase shadow-[5px_5px_0_#111]">
       {busy ? (
         <div className="animate-glitch text-quantum-yellow">QUANTUM PROCESSING...</div>
       ) : null}

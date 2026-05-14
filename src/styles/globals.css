@@ -1,21 +1,21 @@
-@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@500;700;800;900&family=JetBrains+Mono:wght@500;700;800&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --bg-primary: #08111f;
-  --bg-panel: #101b2d;
-  --border: #fff9ed;
-  --accent-yellow: #ffd166;
-  --accent-cyan: #32d9ff;
-  --accent-red: #ff5578;
-  --accent-green: #6dffb1;
-  --accent-purple: #b884ff;
-  --accent-orange: #ff9f1c;
-  --text-primary: #fff9ed;
-  --text-mono: #32d9ff;
+  --paper: #f5f0e8;
+  --ink: #111111;
+  --panel: #ffffff;
+  --fog: #e8e0d5;
+  --yellow: #ffd60a;
+  --cyan: #00e5ff;
+  --green: #00c2a8;
+  --pink: #ff4d8d;
+  --orange: #ff9f1c;
+  --purple: #8a5cf6;
+  --ease: cubic-bezier(0.19, 1, 0.22, 1);
 }
 
 * {
@@ -23,25 +23,29 @@
 }
 
 html {
-  background: var(--bg-primary);
+  background: var(--paper);
+  scroll-behavior: smooth;
 }
 
 body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
+  color: var(--ink);
   background:
-    linear-gradient(145deg, rgba(184, 132, 255, 0.15), transparent 34%),
-    linear-gradient(225deg, rgba(50, 217, 255, 0.14), transparent 38%),
-    linear-gradient(315deg, rgba(255, 159, 28, 0.1), transparent 44%),
-    var(--bg-primary);
-  color: var(--text-primary);
-  font-family: 'Space Mono', 'Courier New', monospace;
+    linear-gradient(118deg, rgba(255, 214, 10, 0.28), transparent 32%),
+    linear-gradient(284deg, rgba(0, 194, 168, 0.22), transparent 40%),
+    linear-gradient(32deg, rgba(255, 77, 141, 0.18), transparent 38%),
+    var(--paper);
+  background-size: 170% 170%;
+  animation: mesh-drift 16s var(--ease) infinite alternate;
+  font-family: 'DM Sans', system-ui, sans-serif;
 }
 
 button,
 input,
 select {
+  font: inherit;
   letter-spacing: 0;
 }
 
@@ -51,8 +55,13 @@ select {
 }
 
 ::selection {
-  background: var(--accent-yellow);
-  color: #000;
+  background: var(--pink);
+  color: var(--ink);
+}
+
+.font-display {
+  font-weight: 900;
+  letter-spacing: 0;
 }
 
 .grid-noise {
@@ -61,14 +70,35 @@ select {
   inset: 0;
   z-index: 0;
   background-image:
-    linear-gradient(rgba(255, 249, 237, 0.09) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 249, 237, 0.09) 1px, transparent 1px);
-  background-size: 32px 32px;
-  mask-image: linear-gradient(to bottom, #000 0%, transparent 90%);
+    linear-gradient(rgba(17, 17, 17, 0.1) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(17, 17, 17, 0.1) 1px, transparent 1px);
+  background-size: 34px 34px;
+  mask-image: linear-gradient(to bottom, #000 0%, transparent 88%);
+}
+
+.cyber-band {
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background:
+    repeating-linear-gradient(
+      116deg,
+      transparent 0 56px,
+      rgba(255, 77, 141, 0.12) 56px 60px,
+      transparent 60px 122px
+    ),
+    radial-gradient(circle at 18% 18%, rgba(0, 229, 255, 0.34), transparent 24%),
+    radial-gradient(circle at 88% 12%, rgba(255, 214, 10, 0.3), transparent 23%),
+    radial-gradient(circle at 72% 86%, rgba(0, 194, 168, 0.25), transparent 26%);
+  animation: band-shift 18s var(--ease) infinite alternate;
 }
 
 .panel {
   isolation: isolate;
+  border-width: 4px;
+  border-color: var(--ink);
+  color: var(--ink);
 }
 
 .panel::before {
@@ -77,53 +107,63 @@ select {
   position: absolute;
   inset: 0;
   z-index: -1;
-  background: linear-gradient(
-    135deg,
-    rgba(255, 209, 102, 0.13),
-    rgba(50, 217, 255, 0.09) 34%,
-    rgba(184, 132, 255, 0.1) 42%,
-    transparent 42%
-  );
+  opacity: 0.52;
+  background-image:
+    linear-gradient(90deg, rgba(17, 17, 17, 0.08) 1px, transparent 1px),
+    linear-gradient(rgba(17, 17, 17, 0.08) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+
+.hero-panel {
+  background:
+    linear-gradient(135deg, rgba(255, 77, 141, 0.2) 0 36%, transparent 36%),
+    #ffffff;
 }
 
 .brutal-button {
-  border: 2px solid #000;
+  border: 4px solid var(--ink);
+  box-shadow: 5px 5px 0 var(--ink);
   transition:
-    transform 120ms ease,
-    box-shadow 120ms ease,
-    filter 120ms ease;
+    transform 150ms ease,
+    box-shadow 150ms ease,
+    filter 150ms ease;
 }
 
 .brutal-button:hover:not(:disabled) {
   transform: translate(2px, 2px);
-  box-shadow: 2px 2px 0 #000;
-  filter: saturate(1.15);
+  box-shadow: 3px 3px 0 var(--ink);
+  filter: saturate(1.08);
 }
 
 .brutal-button:active:not(:disabled) {
-  transform: translate(4px, 4px);
-  box-shadow: 0 0 0 #000;
+  transform: translate(5px, 5px);
+  box-shadow: 0 0 0 var(--ink);
 }
 
 .input-quantum {
-  min-height: 48px;
-  border: 2px solid var(--accent-cyan);
-  background: #000;
-  color: var(--accent-cyan);
+  min-height: 56px;
+  border: 4px solid var(--ink);
+  background: #ffffff;
+  color: var(--ink);
+  box-shadow: 5px 5px 0 var(--ink);
   outline: none;
   transition:
-    border-color 120ms ease,
-    box-shadow 120ms ease;
+    background-color 150ms ease,
+    box-shadow 150ms ease;
 }
 
 .input-quantum:focus {
-  border-color: var(--accent-yellow);
-  box-shadow: 0 0 0 2px rgba(255, 209, 102, 0.38);
+  background: #fff6cc;
+  box-shadow: 5px 5px 0 var(--pink);
+}
+
+.input-quantum::placeholder {
+  color: rgba(17, 17, 17, 0.48);
 }
 
 .input-quantum:disabled {
-  color: rgba(255, 255, 255, 0.35);
-  border-color: rgba(255, 255, 255, 0.35);
+  color: rgba(17, 17, 17, 0.38);
+  background: #efefef;
 }
 
 .scanline {
@@ -139,12 +179,12 @@ select {
   position: absolute;
   left: 0;
   right: 0;
-  top: -30%;
-  height: 42%;
+  top: -28%;
+  height: 38%;
   background: linear-gradient(
     to bottom,
     transparent,
-    rgba(50, 217, 255, 0.18),
+    rgba(0, 229, 255, 0.26),
     transparent
   );
   animation: scan 2.4s linear infinite;
@@ -152,125 +192,130 @@ select {
 
 .quantum-stage {
   position: absolute;
-  inset: 70px 18px 70px;
+  inset: 78px 18px 64px;
   display: grid;
   place-items: center;
   perspective: 900px;
 }
 
-.quantum-cube {
+.paint-core {
   position: relative;
-  width: min(46vw, 210px);
+  width: min(58vw, 280px);
   aspect-ratio: 1;
-  animation: float3d 4s ease-in-out infinite;
-  transform-style: preserve-3d;
+  animation: paint-float 5.6s var(--ease) infinite alternate;
 }
 
-.quantum-cube span {
+.paint-core span,
+.paint-core i,
+.paint-core b {
   position: absolute;
-  inset: 0;
-  border: 4px solid #f3f0e8;
-  background: rgba(50, 217, 255, 0.18);
-  box-shadow: 0 0 24px rgba(50, 217, 255, 0.38) inset;
+  display: block;
+  border: 4px solid var(--ink);
+  box-shadow: 8px 8px 0 var(--ink);
 }
 
-.quantum-cube span:nth-child(1) {
-  transform: translateZ(56px);
+.paint-core span {
+  inset: 20%;
+  background: var(--yellow);
+  transform: rotate(-8deg);
 }
 
-.quantum-cube span:nth-child(2) {
-  transform: rotateY(90deg) translateZ(56px);
-  background: rgba(255, 209, 102, 0.2);
+.paint-core i {
+  inset: 33% 4%;
+  background: var(--pink);
+  transform: rotate(24deg);
 }
 
-.quantum-cube span:nth-child(3) {
-  transform: rotateX(90deg) translateZ(56px);
-  background: rgba(109, 255, 177, 0.16);
+.paint-core b {
+  inset: 7% 38%;
+  background: var(--cyan);
+  transform: rotate(-22deg);
 }
 
-.orbit {
+.paint-dot {
   position: absolute;
-  width: min(62vw, 300px);
-  aspect-ratio: 1;
-  border: 2px solid rgba(255, 255, 255, 0.85);
-  border-radius: 50%;
+  border: 4px solid var(--ink);
+  background: var(--green);
+  box-shadow: 5px 5px 0 var(--ink);
 }
 
-.orbit-a {
-  transform: rotateX(72deg) rotateZ(20deg);
-  border-color: #ffd166;
+.paint-dot-a {
+  left: 10%;
+  bottom: 14%;
+  width: 46px;
+  height: 46px;
+  animation: dot-hop 3.8s var(--ease) infinite alternate;
 }
 
-.orbit-b {
-  transform: rotateX(58deg) rotateY(56deg);
-  border-color: #32d9ff;
-}
-
-.orbit-c {
-  transform: rotateX(112deg) rotateY(20deg);
-  border-color: #6dffb1;
-}
-
-.cyber-band {
-  pointer-events: none;
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  background:
-    repeating-linear-gradient(
-      116deg,
-      transparent 0 48px,
-      rgba(184, 132, 255, 0.08) 48px 50px,
-      transparent 50px 104px
-    ),
-    linear-gradient(90deg, rgba(255, 85, 120, 0.1), transparent 32%),
-    linear-gradient(270deg, rgba(255, 159, 28, 0.11), transparent 36%);
+.paint-dot-b {
+  right: 7%;
+  top: 13%;
+  width: 34px;
+  height: 34px;
+  background: var(--orange);
+  animation: dot-hop 4.3s var(--ease) infinite alternate-reverse;
 }
 
 .quantum-logo-3d {
   position: relative;
   width: var(--logo-size, 52px);
   aspect-ratio: 1;
-  transform-style: preserve-3d;
-  animation: logo3d 5s ease-in-out infinite;
+  animation: logo-bop 4.8s var(--ease) infinite alternate;
 }
 
 .quantum-logo-3d span {
   position: absolute;
-  inset: 0;
   display: grid;
   place-items: center;
-  border: 2px solid #fff9ed;
-  background: linear-gradient(135deg, #ffd166, #32d9ff 52%, #b884ff);
-  color: #05070d;
-  font-family: 'Bebas Neue', Impact, sans-serif;
-  font-size: calc(var(--logo-size, 52px) * 0.48);
+  border: 4px solid var(--ink);
+  background: var(--yellow);
+  color: var(--ink);
+  font-family: 'DM Sans', system-ui, sans-serif;
+  font-size: calc(var(--logo-size, 52px) * 0.35);
+  font-weight: 900;
   line-height: 1;
-  box-shadow: 0 0 18px rgba(50, 217, 255, 0.45) inset;
+  box-shadow: 7px 7px 0 var(--ink);
 }
 
 .quantum-logo-3d span:nth-child(1) {
-  transform: translateZ(calc(var(--logo-size, 52px) * 0.2));
+  inset: 10% 12%;
+  transform: rotate(-7deg);
 }
 
 .quantum-logo-3d span:nth-child(2) {
-  transform: rotateY(90deg) translateZ(calc(var(--logo-size, 52px) * 0.2));
-  background: #ff9f1c;
+  inset: 25% -2% 25% 4%;
+  background: var(--pink);
+  transform: rotate(22deg);
 }
 
 .quantum-logo-3d span:nth-child(3) {
-  transform: rotateX(90deg) translateZ(calc(var(--logo-size, 52px) * 0.2));
-  background: #6dffb1;
+  inset: 5% 40%;
+  background: var(--cyan);
+  transform: rotate(-24deg);
 }
 
 .intro-scan {
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.1), transparent),
-    repeating-linear-gradient(
-      0deg,
-      rgba(255, 255, 255, 0.04) 0 1px,
-      transparent 1px 7px
-    );
+    linear-gradient(135deg, rgba(0, 229, 255, 0.28) 0 36%, transparent 36%),
+    #ffffff;
+}
+
+@keyframes mesh-drift {
+  0% {
+    background-position: 0% 0%;
+  }
+  100% {
+    background-position: 100% 100%;
+  }
+}
+
+@keyframes band-shift {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    transform: translate3d(2%, -2%, 0);
+  }
 }
 
 @keyframes scan {
@@ -282,32 +327,39 @@ select {
   }
 }
 
-@keyframes float3d {
-  0%,
-  100% {
-    transform: translateY(0) rotateX(58deg) rotateZ(42deg);
+@keyframes paint-float {
+  0% {
+    transform: rotate(-2deg) translateY(0);
   }
-  50% {
-    transform: translateY(-10px) rotateX(58deg) rotateZ(50deg);
+  100% {
+    transform: rotate(2deg) translateY(-12px);
   }
 }
 
-@keyframes logo3d {
-  0%,
-  100% {
-    transform: rotateX(-18deg) rotateY(28deg) rotateZ(-4deg);
+@keyframes dot-hop {
+  0% {
+    transform: translateY(0) rotate(-8deg);
   }
-  50% {
-    transform: rotateX(-10deg) rotateY(42deg) rotateZ(4deg);
+  100% {
+    transform: translateY(-18px) rotate(6deg);
+  }
+}
+
+@keyframes logo-bop {
+  0% {
+    transform: rotate(-2deg) translateY(0);
+  }
+  100% {
+    transform: rotate(2deg) translateY(-5px);
   }
 }
 
 @media (max-width: 640px) {
   .quantum-stage {
-    inset: 96px 8px 72px;
+    inset: 110px 8px 72px;
   }
 
-  .quantum-cube {
-    width: 150px;
+  .paint-core {
+    width: 210px;
   }
 }

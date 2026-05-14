@@ -97,14 +97,14 @@ export function OfficialSwapPanel() {
 
   return (
     <Panel className="animate-reveal" shadow="yellow">
-      <div className="mb-5 flex items-center gap-2 border-b-2 border-white pb-3 font-display text-4xl">
+      <div className="mb-5 flex items-center gap-2 border-b-4 border-quantum-black pb-3 font-display text-4xl">
         <Shuffle className="h-7 w-7 text-quantum-yellow" />
         ARC STABLE SWAP
       </div>
 
       <div className="space-y-3">
-        <div className="border-2 border-white bg-black p-4">
-          <div className="mb-3 font-mono text-[11px] uppercase text-white/55">
+        <div className="border-4 border-quantum-black bg-white p-4 shadow-[5px_5px_0_#111]">
+          <div className="mb-3 font-mono text-[11px] uppercase text-quantum-black/55">
             From
           </div>
           <div className="grid gap-3 md:grid-cols-[1fr_190px]">
@@ -114,47 +114,47 @@ export function OfficialSwapPanel() {
               value={amount}
               onChange={(event) => setAmount(event.target.value)}
             />
-            <div className="border-2 border-white bg-quantum-panel p-3">
+            <div className="border-4 border-quantum-black bg-quantum-yellow p-3">
               <div className="font-display text-4xl leading-none">
                 {tokenIn.symbol}
               </div>
-              <div className="truncate font-mono text-[11px] text-white/50">
+              <div className="truncate font-mono text-[11px] text-quantum-black/50">
                 {tokenIn.address}
               </div>
             </div>
           </div>
         </div>
 
-        <div className="border-2 border-quantum-purple bg-black p-3 font-mono text-xs uppercase leading-5 text-white/65">
+        <div className="border-4 border-quantum-black bg-quantum-purple p-3 font-mono text-xs uppercase leading-5 text-quantum-black shadow-[5px_5px_0_#111]">
           Official Circle Swap on Arc Testnet is limited to supported stable
           assets. Tokens deployed from this app need an AMM router and liquidity
           pool before they can be swapped.
         </div>
 
         <button
-          className="mx-auto grid h-12 w-12 place-items-center border-2 border-white bg-quantum-cyan text-black shadow-[4px_4px_0_#000]"
+          className="mx-auto grid h-12 w-12 place-items-center border-4 border-quantum-black bg-quantum-cyan text-quantum-black shadow-[5px_5px_0_#111]"
           onClick={flip}
           aria-label="Flip swap direction"
         >
           <ArrowDown className="h-6 w-6" />
         </button>
 
-        <div className="border-2 border-white bg-black p-4">
-          <div className="mb-3 font-mono text-[11px] uppercase text-white/55">
+        <div className="border-4 border-quantum-black bg-white p-4 shadow-[5px_5px_0_#111]">
+          <div className="mb-3 font-mono text-[11px] uppercase text-quantum-black/55">
             To
           </div>
-          <div className="border-2 border-white bg-quantum-panel p-4">
+          <div className="border-4 border-quantum-black bg-quantum-green p-4">
             <div className="font-display text-5xl leading-none">
               {tokenOut.symbol}
             </div>
-            <div className="truncate font-mono text-xs text-white/50">
+            <div className="truncate font-mono text-xs text-quantum-black/50">
               {tokenOut.address}
             </div>
-            <div className="mt-3 border-2 border-white bg-black p-3 font-mono text-sm text-quantum-cyan">
+            <div className="mt-3 border-4 border-quantum-black bg-white p-3 font-mono text-sm text-quantum-cyan shadow-[5px_5px_0_#111]">
               <div className={quoteBusy ? 'animate-pulse text-quantum-yellow' : ''}>
                 {quote || 'QUOTE AUTO REFRESHING'}
               </div>
-              <div className="mt-1 text-[10px] uppercase text-white/40">
+              <div className="mt-1 text-[10px] uppercase text-quantum-black/40">
                 Updates after pair, amount, or slippage change.
               </div>
             </div>
@@ -192,12 +192,12 @@ export function OfficialSwapPanel() {
         )}
 
         {hash ? (
-          <div className="break-all border-2 border-white bg-black p-3 font-mono text-xs text-quantum-green">
+          <div className="break-all border-4 border-quantum-black bg-quantum-green p-3 font-mono text-xs text-quantum-black shadow-[5px_5px_0_#111]">
             TX {hash}
           </div>
         ) : null}
         {error ? (
-          <div className="break-words border-2 border-quantum-red bg-black p-3 font-mono text-xs text-quantum-red">
+          <div className="break-words border-4 border-quantum-black bg-quantum-red p-3 font-mono text-xs text-quantum-black shadow-[5px_5px_0_#111]">
             {error}
           </div>
         ) : null}

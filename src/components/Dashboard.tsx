@@ -31,18 +31,18 @@ function BalanceRow({
   value: string
 }) {
   return (
-    <div className="border-2 border-white bg-black p-3 font-mono text-xs uppercase">
+    <div className="border-4 border-quantum-black bg-white p-3 font-mono text-xs uppercase shadow-[5px_5px_0_#111]">
       <div className="mb-2 flex items-center justify-between gap-3">
-        <span className="text-white/55">{chain}</span>
+        <span className="text-quantum-black/55">{chain}</span>
         <span className="text-quantum-yellow">{symbol}</span>
       </div>
       <div className="grid grid-cols-[1fr_auto] gap-3">
         <div className="min-w-0">
-          <div className="truncate text-white">{label}</div>
+          <div className="truncate text-quantum-black">{label}</div>
           {address ? (
-            <div className="truncate text-white/40">{address}</div>
+            <div className="truncate text-quantum-black/40">{address}</div>
           ) : (
-            <div className="text-white/40">native gas balance</div>
+            <div className="text-quantum-black/40">native gas balance</div>
           )}
         </div>
         <div className="text-right text-quantum-cyan">{value}</div>
@@ -164,22 +164,22 @@ export function Dashboard() {
 
   return (
     <Panel className="animate-reveal">
-      <div className="flex items-center gap-2 border-b-2 border-white pb-3 font-display text-3xl">
+      <div className="flex items-center gap-2 border-b-4 border-quantum-black pb-3 font-display text-3xl">
         <WalletCards className="h-6 w-6 text-quantum-yellow" />
         ARC WALLET
       </div>
 
       <div className="mt-4 space-y-3">
-        <div className="border-2 border-white bg-black p-3 font-mono text-[11px] uppercase">
+        <div className="border-4 border-quantum-black bg-quantum-yellow p-3 font-mono text-[11px] uppercase shadow-[5px_5px_0_#111]">
           <div className="mb-1 flex items-center gap-2 text-quantum-cyan">
             <ArrowLeftRight className="h-4 w-4" />
             Sepolia to Arc balance view
           </div>
-          <div className="truncate text-white/55">
+          <div className="truncate text-quantum-black/55">
             {ownerAddress ?? 'connect wallet to read balances'}
           </div>
           <div className="mt-3 grid gap-2 sm:grid-cols-[1fr_auto]">
-            <div className="border-2 border-white bg-quantum-panel px-3 py-2 text-white/65">
+            <div className="border-4 border-quantum-black bg-white px-3 py-2 text-quantum-black/65">
               REFRESH QUEUE{' '}
               <b className={pendingCount ? 'text-quantum-yellow' : 'text-quantum-green'}>
                 {pendingCount ? `${pendingCount} PENDING` : 'READY'}
@@ -262,10 +262,10 @@ export function Dashboard() {
             txHistory.slice(0, 8).map((tx) => (
               <div
                 key={tx.id}
-                className="border-2 border-white bg-black p-3 font-mono text-[11px] uppercase"
+                className="border-4 border-quantum-black bg-white p-3 font-mono text-[11px] uppercase shadow-[5px_5px_0_#111]"
               >
                 <div className="flex items-center justify-between gap-2">
-                  <span className="text-white">{tx.summary}</span>
+                  <span className="text-quantum-black">{tx.summary}</span>
                   <div className="flex items-center gap-2">
                     <span
                       className={
@@ -280,7 +280,7 @@ export function Dashboard() {
                     </span>
                     <button
                       aria-label={`Delete ${tx.summary}`}
-                      className="border-2 border-white bg-quantum-red px-2 py-1 text-white"
+                      className="border-4 border-quantum-black bg-quantum-red px-2 py-1 text-quantum-black"
                       onClick={() => removeTx(tx.id)}
                     >
                       DEL
@@ -303,7 +303,7 @@ export function Dashboard() {
               </div>
             ))
           ) : (
-            <div className="border-2 border-white bg-black p-3 font-mono text-xs uppercase text-white/50">
+            <div className="border-4 border-quantum-black bg-white p-3 font-mono text-xs uppercase text-quantum-black/50 shadow-[5px_5px_0_#111]">
               No transaction yet.
             </div>
           )}

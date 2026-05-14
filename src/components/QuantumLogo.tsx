@@ -12,12 +12,9 @@ export function QuantumLogo({ size = 'md', className }: QuantumLogoProps) {
   } as CSSProperties
 
   return (
-    <div
-      className={clsx('grid place-items-center', className)}
-      style={{ perspective: '700px' }}
-    >
+    <div className={clsx('grid place-items-center', className)}>
       <div className="quantum-logo-3d" style={style} aria-label="Arc Quantum logo">
-        <span>AQ</span>
+        <span>ARC</span>
         <span />
         <span />
       </div>
