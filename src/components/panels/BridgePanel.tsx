@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { isAddress, type Address } from 'viem'
 
 import { useArcAppKit } from '../../hooks/useArcAppKit'
+import { CCTP_SAFE_BRIDGE_NOTE, CIRCLE_CCTP_TESTNET } from '../../lib/bridgeSecurity'
 import { Button } from '../ui/Button'
 import { Input } from '../ui/Input'
 import { Panel } from '../ui/Panel'
@@ -66,13 +67,16 @@ export function BridgePanel() {
     <QuantumBusyOverlay
       active={busy}
       title="Bridging USDC"
-      subtitle={`${fromChain} -> ${toChain} via Circle CCTP fast route`}
+      subtitle={`${fromChain} -> ${toChain} via Circle CCTP standard route`}
       tone="yellow"
     />
     <Panel className="compact-action-panel animate-reveal" shadow="yellow">
       <div className="mb-3 flex items-center gap-2 border-b-4 border-quantum-black pb-3 font-display text-3xl">
         <GitBranchPlus className="h-7 w-7 text-quantum-yellow" />
         USDC BRIDGE
+      </div>
+      <div className="mb-3 border-4 border-quantum-black bg-white p-3 font-mono text-[11px] uppercase text-quantum-black/70 shadow-[5px_5px_0_#111]">
+        {CCTP_SAFE_BRIDGE_NOTE}
       </div>
 
       <div className="space-y-3">
@@ -139,9 +143,24 @@ export function BridgePanel() {
             onClick={run}
             disabled={!amount || !validRecipient || busy}
           >
-            {busy ? 'Bridging' : `Bridge ${fromChain} to ${toChain}`}
+            {busy ? 'Bridging' : `Safe Bridge ${fromChain} to ${toChain}`}
           </Button>
         )}
+
+        <div className="grid gap-2 font-mono text-[10px] uppercase md:grid-cols-2">
+          <div className="truncate border-2 border-quantum-black bg-quantum-paper p-2">
+            CCTP Bridge {CIRCLE_CCTP_TESTNET.bridge}
+          </div>
+          <div className="truncate border-2 border-quantum-black bg-quantum-paper p-2">
+            Sepolia USDC {CIRCLE_CCTP_TESTNET.sepoliaUsdc}
+          </div>
+          <div className="truncate border-2 border-quantum-black bg-quantum-paper p-2">
+            Arc USDC {CIRCLE_CCTP_TESTNET.arcUsdc}
+          </div>
+          <div className="truncate border-2 border-quantum-black bg-quantum-paper p-2">
+            No batch / no forwarder
+          </div>
+        </div>
 
         {status ? (
           <div className="space-y-1 border-4 border-quantum-black bg-quantum-green p-3 font-mono text-xs text-quantum-black shadow-[5px_5px_0_#111]">

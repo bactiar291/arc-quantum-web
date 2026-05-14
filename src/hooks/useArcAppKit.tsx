@@ -30,7 +30,6 @@ import {
   createPublicClient,
   encodeDeployData,
   encodeFunctionData,
-  formatUnits,
   http,
   isAddress,
   parseUnits,
@@ -62,7 +61,6 @@ import { useTrackedTx } from './useTrackedTx'
 type StableToken = 'USDC' | 'EURC'
 type SwapDirection = 'USDC_TO_EURC' | 'EURC_TO_USDC'
 type BridgeDirection = 'SEPOLIA_TO_ARC' | 'ARC_TO_SEPOLIA'
-type BridgeEstimate = Awaited<ReturnType<AppKit['estimateBridge']>>
 
 const txHashPattern = /0x[a-fA-F0-9]{64}/
 
@@ -261,20 +259,6 @@ function bridgeBurnHash(result: BridgeResult) {
   return step?.txHash as Hex | undefined
 }
 
-function bridgeFeeCap(estimate: BridgeEstimate) {
-  const fee = estimate.fees.reduce((total, item) => {
-    if (!item.amount) return total
-    try {
-      return total + parseUnits(item.amount, 6)
-    } catch {
-      return total
-    }
-  }, 0n)
-  if (fee <= 0n) return undefined
-  const buffered = fee + fee / 5n + 10_000n
-  return formatUnits(buffered, 6)
-}
-
 function bridgeStepLabel(step: BridgeStep, index: number) {
   const hash = step.txHash?.startsWith('0x') ? ` tx=${step.txHash.slice(0, 10)}...` : ''
   const category = step.errorCategory ? ` category=${step.errorCategory}` : ''
@@ -298,14 +282,6 @@ function bridgeFailureMessage(result: BridgeResult) {
     ].join(' ')
   }
   return `Bridge failed before completion. ${details || 'No step details.'}`
-}
-
-function isForwarderFallbackError(error: unknown) {
-  const message = error instanceof Error ? error.message : String(error)
-  if (/user_rejected|reject|denied|insufficient|balance|allowance|funds/i.test(message)) {
-    return false
-  }
-  return /forwarder|route|unsupported|not supported|maxFee|fee/i.test(message)
 }
 
 async function requestAccounts(provider: EIP1193Provider) {
@@ -894,31 +870,14 @@ export function ArcKitProvider({ children }: { children: ReactNode }) {
           direction === 'SEPOLIA_TO_ARC'
             ? BridgeChain.Arc_Testnet
             : BridgeChain.Ethereum_Sepolia
-        const from = {
-          adapter: activeAdapter,
-          chain:
-            direction === 'SEPOLIA_TO_ARC'
-              ? BridgeChain.Ethereum_Sepolia
-              : BridgeChain.Arc_Testnet
-        } as const
-        const forwarderParams = {
-          from,
-          to: {
-            chain: destinationChain,
-            recipientAddress: recipient,
-            useForwarder: true
-          },
-          amount,
-          token: 'USDC',
-          config: {
-            transferSpeed: TransferSpeed.FAST,
-            batchTransactions: true
-          }
-        } as const
+        const sourceChain =
+          direction === 'SEPOLIA_TO_ARC'
+            ? BridgeChain.Ethereum_Sepolia
+            : BridgeChain.Arc_Testnet
         const standardParams = {
           from: {
             adapter: activeAdapter,
-            chain: from.chain
+            chain: sourceChain
           },
           to: {
             adapter: activeAdapter,
@@ -928,34 +887,13 @@ export function ArcKitProvider({ children }: { children: ReactNode }) {
           amount,
           token: 'USDC',
           config: {
-            transferSpeed: TransferSpeed.FAST,
-            batchTransactions: true
+            transferSpeed: TransferSpeed.SLOW,
+            batchTransactions: false
           }
         } as const
 
-        let result: BridgeResult
-        try {
-          const estimate = await kit.estimateBridge(forwarderParams)
-          const maxFee = bridgeFeeCap(estimate)
-          result = await kit.bridge({
-            ...forwarderParams,
-            config: {
-              ...forwarderParams.config,
-              ...(maxFee ? { maxFee } : {})
-            }
-          })
-        } catch (error) {
-          if (!isForwarderFallbackError(error)) throw error
-          const estimate = await kit.estimateBridge(standardParams)
-          const maxFee = bridgeFeeCap(estimate)
-          result = await kit.bridge({
-            ...standardParams,
-            config: {
-              ...standardParams.config,
-              ...(maxFee ? { maxFee } : {})
-            }
-          })
-        }
+        await kit.estimateBridge(standardParams)
+        const result = await kit.bridge(standardParams)
 
         if (result.state === 'error') {
           const burnHash = bridgeBurnHash(result)
