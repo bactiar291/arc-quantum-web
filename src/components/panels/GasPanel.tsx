@@ -1,9 +1,6 @@
 import { Fuel, KeyRound, ShieldCheck, TriangleAlert } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
-import {
-  envStatus,
-} from '../../lib/env'
 import { useArcAppKit } from '../../hooks/useArcAppKit'
 import { useAppStore } from '../../store/useAppStore'
 import { Button } from '../ui/Button'
@@ -31,14 +28,26 @@ function StatusRow({
 
 export function GasPanel() {
   const [showSignature, setShowSignature] = useState(false)
+  const [zeroDevReady, setZeroDevReady] = useState(false)
   const gasMode = useAppStore((state) => state.gasMode)
   const setGasMode = useAppStore((state) => state.setGasMode)
   const { account, authSignature, isSignedIn, signInExpiresAt, signOut } = useArcAppKit()
-  const aaPrepared =
-    envStatus.circleKit &&
-    envStatus.zeroDevProject &&
-    envStatus.zeroDevPasskey &&
-    envStatus.zeroDevRpc
+  const aaPrepared = zeroDevReady
+
+  useEffect(() => {
+    let alive = true
+    fetch('/api/zerodev/status', { cache: 'no-store' })
+      .then((response) => response.json())
+      .then((data: { ready?: boolean }) => {
+        if (alive) setZeroDevReady(Boolean(data.ready))
+      })
+      .catch(() => {
+        if (alive) setZeroDevReady(false)
+      })
+    return () => {
+      alive = false
+    }
+  }, [])
 
   return (
     <Panel className="animate-reveal" shadow="cyan">
@@ -67,7 +76,7 @@ export function GasPanel() {
           <div className="text-white/55">Selected Mode</div>
           <div className={gasMode === 'sponsor' ? 'text-quantum-orange' : 'text-quantum-cyan'}>
             {gasMode === 'sponsor'
-              ? 'Sponsor requested. Needs ZeroDev UserOperation path before tx can be gasless.'
+              ? 'Sponsor requested. Send tab uses ZeroDev UserOperation beta.'
               : 'Wallet gas live. MetaMask popup expected.'}
           </div>
         </div>
@@ -75,22 +84,22 @@ export function GasPanel() {
         <StatusRow
           label="Circle Kit"
           value="SERVER PROXY"
-          ok={envStatus.circleKit}
+          ok
         />
         <StatusRow
           label="ZeroDev Project"
           value="SERVER SIDE"
-          ok={envStatus.zeroDevProject}
+          ok={zeroDevReady}
         />
         <StatusRow
           label="Passkey Server"
-          value="SERVER SIDE"
-          ok={envStatus.zeroDevPasskey}
+          value="NOT REQUIRED"
+          ok={zeroDevReady}
         />
         <StatusRow
           label="Sponsored RPC"
           value="SERVER SIDE"
-          ok={envStatus.zeroDevRpc}
+          ok={zeroDevReady}
         />
 
         <div className="grid gap-3 md:grid-cols-3">
@@ -105,7 +114,7 @@ export function GasPanel() {
             <KeyRound className="mb-3 h-7 w-7 text-quantum-purple" />
             <div className="font-display text-3xl">ZERODEV</div>
             <div className="font-mono text-xs uppercase text-white/55">
-              Env configured. AA sponsor execution not wired yet.
+              Sponsored send beta is wired through server RPC proxy.
             </div>
           </div>
           <div className="border-2 border-white bg-black p-4">
@@ -118,8 +127,8 @@ export function GasPanel() {
         </div>
 
         <div className="border-2 border-quantum-orange bg-black p-3 font-mono text-xs uppercase leading-5 text-quantum-orange">
-          Sponsor gas needs ZeroDev smart-account execution. Current swap/bridge/send
-          uses Circle App Kit wallet signer, so MetaMask popup is expected.
+          Sponsor gas currently applies to Send tab beta. Swap/bridge still use Circle App
+          Kit wallet signer, so popup is expected there.
         </div>
 
         <div className="border-2 border-quantum-purple bg-black p-3 font-mono text-xs uppercase leading-5">

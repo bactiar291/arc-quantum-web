@@ -16,6 +16,14 @@ import {
   createViemAdapterFromProvider,
   type ViemAdapter
 } from '@circle-fin/adapter-viem-v2'
+import { signerToEcdsaValidator } from '@zerodev/ecdsa-validator'
+import {
+  createKernelAccount,
+  createKernelAccountClient,
+  createZeroDevPaymasterClient,
+  getUserOperationGasPrice
+} from '@zerodev/sdk'
+import { getEntryPoint, KERNEL_V3_1 } from '@zerodev/sdk/constants'
 import {
   createContext,
   useCallback,
@@ -28,6 +36,7 @@ import {
 import {
   createPublicClient,
   encodeDeployData,
+  encodeFunctionData,
   http,
   isAddress,
   parseUnits,
@@ -48,9 +57,9 @@ import {
   arcTransport
 } from '../lib/arc'
 import { quantumTokenBytecode } from '../lib/bytecode'
-import { quantumTokenAbi } from '../lib/contracts'
+import { erc20Abi, quantumTokenAbi } from '../lib/contracts'
 import { CIRCLE_KIT_KEY } from '../lib/env'
-import { EURC_TOKEN } from '../lib/tokens'
+import { EURC_TOKEN, USDC_TOKEN } from '../lib/tokens'
 import { useAppStore } from '../store/useAppStore'
 import { useTrackedTx } from './useTrackedTx'
 
@@ -88,6 +97,11 @@ interface DeployResult {
   contractAddress: Address
 }
 
+interface SponsoredSendResult {
+  txHash: Hex
+  smartAccountAddress: Address
+}
+
 interface StoredSignIn {
   account: Address
   signature: Hex
@@ -101,6 +115,7 @@ interface ArcKitContextValue {
   isConnected: boolean
   isConnecting: boolean
   isSignedIn: boolean
+  sponsorAccountAddress: Address | null
   authSignature: Hex | null
   signInExpiresAt: number
   lastError: string | null
@@ -111,6 +126,8 @@ interface ArcKitContextValue {
   estimateSwap: (request: SwapRequest) => Promise<SwapEstimate>
   executeSwap: (request: SwapRequest) => Promise<SwapResult>
   sendToken: (request: SendRequest) => Promise<BridgeStep>
+  sendTokenSponsored: (request: SendRequest) => Promise<SponsoredSendResult>
+  prepareSponsorAccount: () => Promise<Address>
   bridgeUsdc: (request: BridgeRequest) => Promise<BridgeResult>
   deployToken: (request: DeployRequest) => Promise<DeployResult>
 }
@@ -118,6 +135,9 @@ interface ArcKitContextValue {
 const ArcKitContext = createContext<ArcKitContextValue | null>(null)
 const signInStorageKey = 'arc_quantum_signin_v1'
 const signInLifetimeMs = 7 * 24 * 60 * 60 * 1000
+const zeroDevRpcProxy = '/api/zerodev/rpc'
+const entryPoint = getEntryPoint('0.7')
+const kernelVersion = KERNEL_V3_1
 
 function getProvider() {
   const provider = window.ethereum
@@ -311,6 +331,7 @@ export function ArcKitProvider({ children }: { children: ReactNode }) {
   const [chainId, setChainId] = useState<number | null>(null)
   const [isConnecting, setIsConnecting] = useState(false)
   const [isSignedIn, setIsSignedIn] = useState(false)
+  const [sponsorAccountAddress, setSponsorAccountAddress] = useState<Address | null>(null)
   const [authSignature, setAuthSignature] = useState<Hex | null>(null)
   const [signInExpiresAt, setSignInExpiresAt] = useState(0)
   const [lastError, setLastError] = useState<string | null>(null)
@@ -458,6 +479,52 @@ export function ArcKitProvider({ children }: { children: ReactNode }) {
     setSignInExpiresAt(0)
   }, [account])
 
+  const getSponsorClient = useCallback(async () => {
+    await switchToArc()
+    const provider = getProvider()
+    const ecdsaValidator = await signerToEcdsaValidator(arcPublicClient, {
+      signer: provider,
+      entryPoint,
+      kernelVersion
+    })
+    const sponsorAccount = await createKernelAccount(arcPublicClient, {
+      plugins: { sudo: ecdsaValidator },
+      entryPoint,
+      kernelVersion
+    })
+    setSponsorAccountAddress(sponsorAccount.address)
+
+    const paymasterClient = createZeroDevPaymasterClient({
+      chain: arcTestnet,
+      transport: http(zeroDevRpcProxy)
+    })
+    const kernelClient = createKernelAccountClient({
+      account: sponsorAccount,
+      chain: arcTestnet,
+      client: arcPublicClient,
+      bundlerTransport: http(zeroDevRpcProxy),
+      paymaster: {
+        getPaymasterData(userOperation) {
+          return paymasterClient.sponsorUserOperation({ userOperation })
+        },
+        getPaymasterStubData(userOperation) {
+          return paymasterClient.sponsorUserOperation({ userOperation })
+        }
+      },
+      userOperation: {
+        estimateFeesPerGas: async ({ bundlerClient }) =>
+          getUserOperationGasPrice(bundlerClient)
+      }
+    })
+
+    return { account: sponsorAccount, client: kernelClient }
+  }, [switchToArc])
+
+  const prepareSponsorAccount = useCallback(async () => {
+    const sponsor = await getSponsorClient()
+    return sponsor.account.address
+  }, [getSponsorClient])
+
   const readyAdapter = useCallback(async () => {
     await switchToArc()
     return adapter ?? (await buildAdapter(true)).adapter
@@ -525,6 +592,41 @@ export function ArcKitProvider({ children }: { children: ReactNode }) {
       return tracked.value
     },
     [kit, readyAdapter, track]
+  )
+
+  const sendTokenSponsored = useCallback(
+    async ({ token, amount, to }: SendRequest) => {
+      const tokenMeta = token === 'USDC' ? USDC_TOKEN : EURC_TOKEN
+      const value = parseUnits(amount || '0', tokenMeta.decimals)
+      if (value <= 0n) throw new Error('Amount must be greater than zero.')
+      const data = encodeFunctionData({
+        abi: erc20Abi,
+        functionName: 'transfer',
+        args: [to, value]
+      })
+      const tracked = await track(
+        'send',
+        `Sponsored send ${token} to ${to.slice(0, 10)}...`,
+        async () => {
+          const sponsor = await getSponsorClient()
+          const hash = await sponsor.client.sendTransaction({
+            to: tokenMeta.address,
+            data,
+            value: 0n
+          })
+          return {
+            hash,
+            value: {
+              txHash: hash,
+              smartAccountAddress: sponsor.account.address
+            }
+          }
+        }
+      )
+      if (!tracked.value) throw new Error('Sponsored send result kosong.')
+      return tracked.value
+    },
+    [getSponsorClient, track]
   )
 
   const bridgeUsdc = useCallback(
@@ -626,6 +728,7 @@ export function ArcKitProvider({ children }: { children: ReactNode }) {
       isConnected: Boolean(account),
       isConnecting,
       isSignedIn,
+      sponsorAccountAddress,
       authSignature,
       signInExpiresAt,
       lastError,
@@ -636,6 +739,8 @@ export function ArcKitProvider({ children }: { children: ReactNode }) {
       estimateSwap,
       executeSwap,
       sendToken,
+      sendTokenSponsored,
+      prepareSponsorAccount,
       bridgeUsdc,
       deployToken
     }),
@@ -651,10 +756,13 @@ export function ArcKitProvider({ children }: { children: ReactNode }) {
       isSignedIn,
       isConnecting,
       lastError,
+      prepareSponsorAccount,
+      sendTokenSponsored,
       signIn,
       signInExpiresAt,
       signOut,
       sendToken,
+      sponsorAccountAddress,
       switchToArc
     ]
   )
